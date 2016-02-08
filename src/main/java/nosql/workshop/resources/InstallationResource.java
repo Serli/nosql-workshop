@@ -3,6 +3,7 @@ package nosql.workshop.resources;
 import com.google.inject.Inject;
 import net.codestory.http.Context;
 import net.codestory.http.annotations.Get;
+import net.codestory.http.errors.NotFoundException;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
@@ -35,14 +36,19 @@ public class InstallationResource {
 
     @Get("/:numero")
     public Installation get(String numero) {
-        return null;
+        Installation result = service.getById(numero);
+
+        if (result == null) {
+            return NotFoundException.notFoundIfNull(result);
+        }
+
+        return result;
     }
 
 
     @Get("/random")
     public Installation random() {
-
-        return null;
+        return service.getRandom();
     }
 
     @Get("/search")
