@@ -5,23 +5,32 @@ import net.codestory.http.Context;
 import net.codestory.http.annotations.Get;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
+import nosql.workshop.services.InstallationService;
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
  * Resource permettant de gérer l'accès à l'API pour les Installations.
  */
 public class InstallationResource {
+    private InstallationService service;
 
     @Inject
     public InstallationResource() {
+        try {
+            service = new InstallationService();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
 
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        return null;
+        List<Installation> results = service.getAll();
+        return results;
     }
 
     @Get("/:numero")
