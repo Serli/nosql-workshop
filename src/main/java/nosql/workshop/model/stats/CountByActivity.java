@@ -20,4 +20,9 @@ public class CountByActivity {
     public void setTotal(long total) {
         this.total = total;
     }
+
+    @Override
+    public String toString() {
+        return "{ activite : " + getActivite() + ", total : " + getTotal() + " }";
+    }
 }

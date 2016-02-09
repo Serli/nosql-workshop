@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
 import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
 
@@ -60,8 +61,15 @@ public class InstallationService {
     }
 
     public InstallationsStats stats() {
-        InstallationsStats stats = null;
+        InstallationsStats stats = new InstallationsStats();
+        final ArrayList<CountByActivity> countByActivities = Lists.newArrayList(installations.aggregate("{ $unwind : '$equipements' }")
+                .and("{ $unwind : '$equipements.activites' }")
+                .and("{ $group : { _id : '$equipements.activites', total : { $sum : 1 } } }")
+                .and("{ $project :  { _id : 0, activite : '$_id', total : 1 } }")
+                .and("{ $sort : { total : -1 } }").as(CountByActivity.class).iterator());
 
+        stats.setCountByActivity(countByActivities);
+        
         return stats;
 
     }
