@@ -1,10 +1,13 @@
 package nosql.workshop.batch.mongodb;
 
+import com.google.common.collect.Sets;
 import com.mongodb.*;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +38,6 @@ public class ImportDataInMongo {
             .filter(line -> line.length() > 0)
             .map(line -> line.split("\",\""))
             .forEach(column -> {
-                //TODO insert in mongo
                 DBObject installation = new BasicDBObject("type", "Installation")
                         .append("_id", cleanString(column[1]))
                         .append("nom", cleanString(column[0]))
@@ -65,7 +67,6 @@ public class ImportDataInMongo {
                 .filter(line -> line.length() > 0)
                 .map(line -> line.split(","))
                 .forEach(column -> {
-                    //TODO update in mongo
                     String numInstall = column[2];
                     String numero = column[4];
                     String nom = column[5];
@@ -73,14 +74,19 @@ public class ImportDataInMongo {
                     String famille = column[9];
 
                     DBObject installation = collection.findOne(numInstall);
-                    List<DBObject> equipements = (List<DBObject>) installation.get("equipements");
-                    equipements.add(new BasicDBObject("numero", numero)
+                    Set<DBObject> equipements;
+                    BasicDBObject equipement = new BasicDBObject("numero", numero)
                             .append("nom", nom)
                             .append("type", type)
-                            .append("famille", famille));
-
-                    collection.update(new BasicDBObject("_id", numInstall),
-                            new BasicDBObject("equipements", equipements));
+                            .append("famille", famille);
+                    if (installation.containsField("equipements")) {
+                        equipements = new HashSet<>((List<DBObject>) installation.get("equipements"));
+                        equipements.add(equipement);
+                    } else {
+                        equipements = Sets.newHashSet(equipement);
+                    }
+                    installation.put("equipements", equipements);
+                    collection.update(new BasicDBObject("_id", numInstall), installation);
                 });
     }
 
