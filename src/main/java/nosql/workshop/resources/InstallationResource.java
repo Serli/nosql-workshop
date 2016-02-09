@@ -25,11 +25,13 @@ public class InstallationResource {
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
+    	
         return null;
     }
 
     @Get("/:numero")
     public Installation get(String numero) {
+    	
         return null;
     }
 
