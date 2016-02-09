@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
+import org.elasticsearch.common.lucene.store.ThreadSafeInputStreamIndexInput;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -63,9 +65,8 @@ public class CsvToMongo {
 	}
 
 	private void saveInstallations(String[] columns) {
-		DBObject point = new BasicDBObject("type", "Point")
+		DBObject location = new BasicDBObject("type", "Point")
 				.append("coordinates", Arrays.asList(columns[9],columns[10]));
-		DBObject location = new BasicDBObject("location", point);
 		DBObject adresse = new BasicDBObject("numero", columns[6])
 				.append("voie", columns[7])
 				.append("lieuDit", columns[5])
@@ -86,6 +87,7 @@ public class CsvToMongo {
 
 	public static void main(String[] args) {
 		CsvToMongo obj = new CsvToMongo();
+		obj.collection.drop();
 		obj.run("/batch/csv/installations.csv", "installations");
 		obj.run("/batch/csv/equipements.csv", "equipements");
 		obj.run("/batch/csv/activites.csv", "activites");
