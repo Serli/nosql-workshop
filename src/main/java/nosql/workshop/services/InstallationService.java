@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.DBObject;
 
+import net.codestory.http.Query;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 
@@ -48,6 +49,16 @@ public class InstallationService {
     }
     
     public List<Installation> search(String query){
-    	
+    	Iterable<Installation> list 
+    			= installations.find("{$text:{$search:'"+query+"'}}")
+    					//+"{score: {'$meta': 'textScore'}}")
+    					.as(Installation.class);
+    	return Lists.newArrayList(list);
+    }
+    public List<Installation> geosearch(Query query){
+    	String lat = query.get("lat");
+    	String lng = query.get("lng");
+    	String distance = query.get("distance");
+    	return null;
     }
 }
