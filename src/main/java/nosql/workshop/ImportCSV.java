@@ -28,14 +28,16 @@ public class ImportCSV {
 		DBCollection installations = db.getCollection("installations");
 		DBCollection equipements = db.getCollection("equipements");
         DBCollection activites = db.getCollection("activites");
-		
-		//importInstallation(installations);
-		//importEquipement(equipements);
-        importActivite(activites);
+        
+		importInstallation(installations, equipements);
+		importEquipement(equipements, installations);
+
+		//importEquipement(equipements, activites);
+        //importActivite(activites);
 		
 	}
 	
-	public static void importInstallation(DBCollection installations) {
+	public static void importInstallation(DBCollection installations, DBCollection equipements) {
 
 
 		String csvFile = "src/main/resources/batch/csv/installations.csv";
@@ -87,6 +89,8 @@ public class ImportCSV {
 
 				installations.insert(inst);
 
+				
+				//installations.update(query, update)
 
 			}
 		} catch (FileNotFoundException e) {
@@ -105,7 +109,7 @@ public class ImportCSV {
 	}
 	
 
-	public static void importEquipement(DBCollection equipements) {
+	public static void importEquipement(DBCollection equipements, DBCollection installations) {
         String csvFile = "src/main/resources/batch/csv/equipements.csv";
         BufferedReader br = null;
         String line = "";
@@ -126,18 +130,26 @@ public class ImportCSV {
                 String[] data = line.split(cvsSplitBy);
 
                 equipement = new BasicDBObject("type", "Equipement")
-                        .append("_id", data[4]) // EquipementId
                         .append("numero", data[2]) // InsNumeroInstall
                         .append("nom", data[5]) // EquNom
                         .append("type", data[7]) // EquipemementTypeLib
                         .append("famille", data[9]); // FamilleFicheLib
-
-
+                                
+                installations.update(new BasicDBObject("_id", data[2]), new BasicDBObject("$push", new BasicDBObject("equipements", equipement)));
+                /*DBCursor cursor = installations.find(new BasicDBObject().append("_id", data[2]));
+				try {
+					while(cursor.hasNext()) {
+						DBObject obj = cursor.next();
+						installations.update(obj, new BasicDBObject("$push", new BasicDBObject("equipements", equipement)));
+					}
+				} finally {
+					cursor.close();
+				}*/
             }
-            equipements.insert(equipement);
 
             // TODO update installation with equipementID
-
+            
+            
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
