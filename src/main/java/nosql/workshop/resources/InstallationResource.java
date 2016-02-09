@@ -23,14 +23,14 @@ public class InstallationResource {
 
 
     @Get("/")
-    @Get("")
+    @Get("/installations")
     public List<Installation> list(Context context) {
-        return null;
+        return installationService.list();
     }
 
     @Get("/:numero")
     public Installation get(String numero) {
-        return null;
+        return installationService.get(numero);
     }
 
 
@@ -41,19 +41,19 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
+    	return installationService.search(context.get("query"));
 
     }
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        return null;
+    	return installationService.geoSearch(context.get("lat"), context.get("lng"), context.get("distance"));
 
     }
 
     @Get("/stats")
     public InstallationsStats stats() {
-        return null;
+        return installationService.stats();
 
     }
 }
