@@ -7,15 +7,88 @@ package nosql.workshop.batch.mongodb; /*
  * TODO : description
  */
 
-import com.mongodb.DB;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Map;
 
 public class CSVtoMongo {
 
-    MongoClient mongoClient = new MongoClient();
-    DB db = mongoClient.getDB("nosql-workshop");
+    private static String pathInstallation = "./src/main/resources/batch/csv/installations.csv";
+    private static String pathEquipements = "./src/main/resources/batch/csv/equipements.csv";
+    private static String pathActivites = "./src/main/resources/batch/csv/activites.csv";
+
+    public static void main (String[] args) {
+
+        MongoClient mongoClient = new MongoClient();
+        DB db = mongoClient.getDB("nosql-workshop");
+        DBCollection collection = db.getCollection("people");
 
 
-    //"Nom usuel de l'installation","Numéro de l'installation","Nom de la commune","Code INSEE","Code postal","Nom du lieu dit","Numero de la voie","Nom de la voie","location","Longitude","Latitude","Aucun aménagement d'accessibilité","Accessibilité handicapés à mobilité réduite","Accessibilité handicapés sensoriels","Emprise foncière en m2","Gardiennée avec ou sans logement de gardien","Multi commune","Nombre total de place de parking","Nombre total de place de parking handicapés","Installation particulière","Desserte métro","Desserte bus","Desserte Tram","Desserte train","Desserte bateau","Desserte autre","Nombre total d'équipements sportifs","Nombre total de fiches équipements","Date de mise à jour de la fiche installation"
+
+    for (Map<String, String> line : ReadCVS.run(pathInstallation)) {
+        DBObject document = new BasicDBObject()
+                .append("_id", line.get("Numéro de l'installation"))
+                .append("nom", line.get("Nom usuel de l'installation"))
+                .append("adresse",
+                        new BasicDBObject()
+                                .append("numero", line.get("Numero de la voie"))
+                                .append("voie", line.get("Nom de la voie"))
+                                .append("lieuDit", line.get("Nom du lieu dit"))
+                                .append("codePostal", line.get("Code postal"))
+                                .append("commune", line.get("Nom de la commune"))
+                )
+                .append(
+                        "location",
+                        new BasicDBObject("type", "Point")
+                                .append(
+                                        "coordinates",
+                                        Arrays.asList(
+                                                Double.valueOf(line.get("Longitude")),
+                                                Double.valueOf(line.get("Latitude"))
+                                        )
+                                )
+                )
+                .append("multiCommune", "Oui".equals(line.get("Multi commune")))
+                .append("nbPlacesParking", line.get("Nombre total de place de parking").isEmpty() ? null : Integer.valueOf(line.get("Nombre total de place de parking")))
+                .append("nbPlacesParkingHandicapes", line.get("Nombre total de place de parking handicapés").isEmpty() ? null : Integer.valueOf(line.get("Nombre total de place de parking handicapés")))
+                .append(
+                        "dateMiseAJourFiche",
+                        line.size() < 29 || line.get("Date de mise à jour de la fiche installation").isEmpty()
+                                ? null :
+                                Date.from(
+                                        LocalDate.parse(line.get("Date de mise à jour de la fiche installation").substring(0, 10))
+                                                .atStartOfDay(ZoneId.of("UTC"))
+                                                .toInstant()
+                                )
+                );
+        collection.insert(document);
+    }
+
+       /* for (Map<String, String> line : ReadCVS.run(pathEquipements)) {
+            db.getCollection("people").update(new BasicDBObject()
+                    .append("_id", line.get("EquipementId"))
+                    .append("nom", line.get("EquNom"))
+                    .append("type", line.get("EquipementTypeLib"))
+                    .append("famille", line.get("FamilleFicheLib")), db.getCollection("people").findOne());
+        }*/
+
+       /* for (Map<String, String> line : ReadCVS.run(pathActivites)) {
+            db.getCollection("people").update(new BasicDBObject()
+                    .append("_id", line.get("Activité code"))
+                    .append("nom", line.get("Activité libellé")), db.getCollection("people").findOne());
+        }*/
+
+    }
+
+
+
+
 
 }
