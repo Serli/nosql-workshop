@@ -44,6 +44,7 @@ public class TownsImporter {
                 .forEach(columns -> {
                     DBObject obj = new BasicDBObject()
                             .append("townName", columns[1].trim())
+                            .append("id", columns[0].trim())
                             .append(
                                     "location",
                                     Arrays.asList(
@@ -62,13 +63,10 @@ public class TownsImporter {
                 .build());
         JestClient client = factory.getObject();
 
-        Map<String, Object> source = new HashMap<>();
-        source.put("town", dbObjectList);
-
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("towns")
                 .defaultType("town")
-                .addAction(new Index.Builder(source).build())
+                .addAction(getTowns(dbObjectList))
                 .build();
 
         try {
@@ -76,5 +74,19 @@ public class TownsImporter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static List<Index> getTowns(List<DBObject> list){
+        List<Index> indexes = new ArrayList<>();
+        for (DBObject object: list) {
+            indexes.add(createIndex(object));
+        }
+        return indexes;
+    }
+
+    private static Index createIndex(DBObject object){
+        String id = object.get("id").toString();
+        object.removeField("id");
+        return new Index.Builder(object).id(id).build();
     }
 }

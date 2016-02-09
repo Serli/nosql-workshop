@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
 
@@ -41,7 +42,13 @@ public class InstallationService {
     }
 
     public InstallationsStats stats() {
-        return new InstallationsStats();
+        InstallationsStats installationsStats = new InstallationsStats();
+        installationsStats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$unwind: \"$equipements.activites\"}")
+                .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
+                .and("{$project: {activite: \"$_id\", total : 1}}")
+                .as(CountByActivity.class).iterator()));
+        return installationsStats;
     }
 
     public List<Installation> geosearch(Double lat, Double lng, Integer distance) {
