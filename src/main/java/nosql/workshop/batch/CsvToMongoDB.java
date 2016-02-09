@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.Cursor;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -51,7 +52,6 @@ public class CsvToMongoDB {
 						.append("Nbequ", installs[26]);
 				col.insert(installations);
 			}
-
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -65,6 +65,8 @@ public class CsvToMongoDB {
 				}
 			}
 		}
+		
+		col.createIndex(new BasicDBObject("location", "2dsphere"));
 		
 		try {
 			cvsSplitBy = ",";
@@ -133,6 +135,7 @@ public class CsvToMongoDB {
 				}
 			}
 		}
+
 		
 		
 	}

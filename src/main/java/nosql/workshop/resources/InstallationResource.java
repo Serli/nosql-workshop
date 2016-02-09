@@ -25,12 +25,11 @@ public class InstallationResource {
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        return null;
+        return installationService.getAll();
     }
 
     @Get("/:numero")
     public Installation get(String number) {
-    	System.out.println("bla");
     	return installationService.get(number);
     }
 
@@ -48,13 +47,11 @@ public class InstallationResource {
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        return null;
-
+        return installationService.geosearch(context);
     }
 
     @Get("/stats")
     public InstallationsStats stats() {
-        return null;
-
+        return installationService.stats();
     }
 }
