@@ -13,7 +13,9 @@ import com.mongodb.DBObject;
 public class FillDb {
 	
 	public static void fillInstallations() throws IOException{
-		List<String> lines = Files.readAllLines(Paths.get("src/main/resources/batch/csv/installations.csv"));
+		String[] labels = {"_id","nom","adresse","numero","voie","lieuDit","codePostal","commune","location","type","point","coordinates","multiCommune","nbPlacesParking","nbPlacesParkingHandicape",
+		"DateMiseAJourFiche"};
+		fillWithCsv("src/main/resources/batch/csv/installations.csv",labels);
 		
 	}
 	
