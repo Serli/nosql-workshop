@@ -15,6 +15,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,4 +24,15 @@ import java.util.stream.Collectors;
  */
 public class SearchService {
 
+    public List<Installation> search(String query) {
+        return new ArrayList<>();
+    }
+
+    public List<Installation> geosearch(Double lat, Double lng, Integer distance) {
+        return new ArrayList<>();
+    }
+
+    public List<TownSuggest> suggest(String text) {
+        return new ArrayList<>();
+    }
 }
