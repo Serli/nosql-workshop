@@ -2,12 +2,18 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.DB;
+import com.mongodb.MongoClient;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import org.jongo.Jongo;
 import org.jongo.MongoCollection;
+import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static nosql.workshop.model.Installation.*;
 
@@ -38,5 +44,20 @@ public class InstallationService {
         location.setCoordinates(new double[]{3.4, 3.2});
         installation.setLocation(location);
         return installation;
+    }
+
+    public List<Installation> getInstallations(){
+        MongoClient mongoClient = new MongoClient();
+        DB db = mongoClient.getDB("nosql-workshop");
+        //MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
+
+        Jongo jongo = new Jongo(db);
+        MongoCollection installations = jongo.getCollection("installations");
+        MongoCursor<Installation> all = installations.find().as(Installation.class);
+        List<Installation> result = new ArrayList<>();
+        for(Installation installation : all){
+            result.add(installation);
+        }
+        return result;
     }
 }

@@ -19,13 +19,14 @@ public class InstallationResource {
     @Inject
     public InstallationResource(InstallationService installationService) {
         this.installationService = installationService;
+
     }
 
 
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        return null;
+        return installationService.getInstallations();
     }
 
     @Get("/:numero")
