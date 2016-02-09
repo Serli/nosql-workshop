@@ -26,56 +26,39 @@ import java.util.Map;
  */
 public class MongoDbToElastic {
 
-    public static String getColumnValue(String column) {
-        return column.matches("\".*\"")?column.substring(1,column.length()-1):column;
-    }
 
-    private static void importDataMongoToElastic(DBObject object){
-
-
-    }
-
-    private static void importCitiesFromCSVToElastic(JestClient client){
-        InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/towns_paysdeloire.csv");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            reader.lines().skip(1).filter(line -> line.length() > 0)
-                    .map(line -> line.split(","))
-                    .forEach(columns -> {
-                        List<Double> coord = new ArrayList<Double>();
-                        coord.add( Double.parseDouble(getColumnValue(columns[6])));
-                        coord.add( Double.parseDouble(getColumnValue(columns[7])));
-                        Map<String, Object> source = new HashMap<String, Object>();
-                        source.put("townName",getColumnValue(columns[2]));
-                        source.put("location", coord);
-                        Bulk bulk = new Bulk.Builder()
-                                .defaultIndex("towns")
-                                .defaultType("town")
-                                .addAction(new Index.Builder(source).build())
-                                .build();
-                        try {
-                            client.execute(bulk);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    });
-
-    }
 
     public static void main(String[] args) {
         JestClient client= ESConnectionUtil.createClient("");
         MongoClient mongoClient = new MongoClient( "localhost" , 27017 );
         DB db = mongoClient.getDB( "nosql-workshop" );
 
-        importCitiesFromCSVToElastic(client);
+        DBCursor cursor=db.getCollection("installations").find();
 
-        //DBCursor cursor=db.getCollection("installations").find();
-
-        /*while(cursor.hasNext()){
-            importDataMongoToElastic(cursor.next());
-
-        }*/
+        Bulk bulk = new Bulk.Builder()
+                .defaultIndex("installations")
+                .defaultType("installation")
+                .addAction(getIndexes(cursor))
+                .build();
+        try {
+            client.execute(bulk);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+    private static List<Index> getIndexes(DBCursor cursor){
+        List<Index> indexes = new ArrayList<>();
+        while(cursor.hasNext()){
+            indexes.add(createIndex(cursor.next()));
+        }
+        return indexes;
+    }
+    private static Index createIndex(DBObject object){
+        String id = object.get("_id").toString();
+        object.removeField("_id");
+        object.removeField("dateMiseAJourFiche");
+        return new Index.Builder(object).id(id).build();
+    }
 
 }
