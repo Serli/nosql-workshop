@@ -14,7 +14,10 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 public class BatchJob {
@@ -24,7 +27,7 @@ public class BatchJob {
     public static void main(String[] args) {
 
         try (MongoClient mongoClient = new MongoClient()) {
-            Path path = Paths.get("src/main/resources/batch/csv", "installations.test.csv");
+            Path path = Paths.get("src/main/resources/batch/csv", "installations.csv");
             Reader source = Files.newBufferedReader(path, Charset.forName("UTF-8"));
 
             MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
@@ -33,16 +36,21 @@ public class BatchJob {
             try (BufferedReader reader = new BufferedReader(source)) {
                 reader.lines()
                         .skip(1)
-                        .map(line -> Arrays.asList(line.split(SEPARATOR)))
+                        .map(line -> Arrays.asList(line.split("\",\"")))
                         .map(line -> line.stream().map(i -> i.replaceAll("\"", "")).collect(Collectors.toList()))
                         .collect(Collectors.toList())
                         .forEach(r -> {
                             Document doc = new Document("_id", r.get(1))
                                     .append("nom", r.get(0))
-                                    .append("multiCommune", r.get(17))
-                                    .append("nbPlacesParking", r.get(18))
-                                    .append("nbPlacesParkingHandicapes", r.get(19))
-                                    .append("dateMiseAJourFiche", r.get(29))
+                                    .append("multiCommune", "Oui".equalsIgnoreCase(r.get(16)))
+                                    .append("nbPlacesParking", r.get(17).isEmpty() ? null : Integer.valueOf(r.get(17)))
+                                    .append("nbPlacesParkingHandicapes", r.get(18).isEmpty() ? null : Integer.valueOf(r.get(18)))
+                                    .append("dateMiseAJourFiche",
+                                            r.get(28) == null || r.get(28).isEmpty() || r.get(28).length() <= 9
+                                                    ? null :
+                                                    Date.from(LocalDate.parse(r.get(28).substring(0, 10))
+                                                            .atStartOfDay(ZoneId.of("UTC"))
+                                                            .toInstant()))
                                     .append("adresse",
                                             new Document("numero", r.get(6))
                                                     .append("voie", r.get(7))
@@ -50,9 +58,8 @@ public class BatchJob {
                                                     .append("codePostal", r.get(4))
                                                     .append("commune", r.get(2)))
                                     .append("location",
-                                            new Document("type", r.get(8))
-                                                    .append("coordinates", Arrays.asList(r.get(10), r.get(11)) ));
-
+                                            new Document("type", "Point")
+                                                    .append("coordinates", Arrays.asList(Double.valueOf(r.get(9)), Double.valueOf(r.get(10)) )));
 
                             collection.insertOne(doc);
                         });
@@ -64,7 +71,7 @@ public class BatchJob {
                 throw new UncheckedIOException(e);
             }
 
-            path = Paths.get("src/main/resources/batch/csv", "equipements.test.csv");
+            path = Paths.get("src/main/resources/batch/csv", "equipements.csv");
             source = Files.newBufferedReader(path, Charset.forName("UTF-8"));
 
             try (BufferedReader reader = new BufferedReader(source)) {
@@ -82,7 +89,24 @@ public class BatchJob {
                                     new Document().append("$addToSet",
                                             new Document().append("equipements", doc))
                             );
-                            System.out.println("matched=" + ur.getMatchedCount() + " modified="+ ur.getModifiedCount());
+                        });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+
+            path = Paths.get("src/main/resources/batch/csv", "activites.csv");
+            source = Files.newBufferedReader(path, Charset.forName("UTF-8"));
+
+            try (BufferedReader reader = new BufferedReader(source)) {
+                reader.lines()
+                        .skip(1)
+                        .map(line -> Arrays.asList(line.split(SEPARATOR)))
+                        .map(line -> line.stream().map(i -> i.replaceAll("\"", "")).collect(Collectors.toList()))
+                        .collect(Collectors.toList())
+                        .forEach(r -> {
+                            UpdateResult ur =  collection.updateOne(
+                                    new Document().append("equipements", new Document("$elemMatch", new Document("numero", r.get(2)))),
+                                    new Document().append("$addToSet", new Document().append("equipements.$.activites", r.get(5))));
                         });
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
