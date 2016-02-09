@@ -51,7 +51,6 @@ public class InstallationService {
     public List<Installation> search(String query){
     	Iterable<Installation> list 
     			= installations.find("{$text:{$search:'"+query+"'}}")
-    					//+"{score: {'$meta': 'textScore'}}")
     					.as(Installation.class);
     	return Lists.newArrayList(list);
     }

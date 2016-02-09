@@ -24,6 +24,7 @@ public class CsvToMongoDb {
 	private static final String EQUIPEMENTS = "equipements";
 	private static final String VILLES = "towns_paysdelaloire";
 	private Jongo connection;
+	int count=0;
 
 
 	public CsvToMongoDb(){
@@ -115,6 +116,7 @@ public class CsvToMongoDb {
 	}
 
 	public void extractCsv(String type){ //"/batch/csv/installations.csv"
+		System.out.print("Starting extraction for "+type);
 		String path = "/batch/csv/"+type.toLowerCase()+".csv";
 		connection.getDatabase().createCollection(type, null);
 		try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream(path);
@@ -125,10 +127,18 @@ public class CsvToMongoDb {
 			.map(line -> line.split(getSpliter(type)))
 			.forEach(columns -> {
 				createObject(lifting(columns),type);
+				if(count==100){
+					System.out.print(".");
+					count=0;
+				}
+				else{
+					count++;
+				}
 			});
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+		System.out.println("\nDone with : "+type);
 	}
 	public String[] lifting(String[] array){
 		String[] result = new String[array.length];
@@ -140,7 +150,32 @@ public class CsvToMongoDb {
 	}
 
 	public void createIndex(){
-		connection.getDatabase().getCollection(INSTALLATIONS).createIndex(new BasicDBObject("nom",1).append("adresse.commune",1));
+		//connection.getDatabase().getCollection(INSTALLATIONS).createIndex(new BasicDBObject("nom",1).append("adresse.commune",1));
+		connection.getCollection(INSTALLATIONS).ensureIndex(String.join("", 
+				"{",
+					"*nom*:*text*,",
+					"*adresse.commune*:*text*",
+				"},",
+				"{",
+					"*weights*:{",
+						"*nom*:3,",
+						"*adresse.commune*:10",
+						"},",
+						"*default_language*:*french*",
+				"}"
+				).replace('*', '"'));
+				/*"{"
+						+"\"nom\" : \"text\","
+						+"\"adresse.commune\" : \"text\""
+				+"},"
+				+"{"
+						+"\"weights\" : {"
+						+"\"nom\" : 3,"
+						+"\"adresse.commune\" : 10"
+				+"},"
+				+"\"default_language\" : \"french\""
+				+"}";
+				);*/
 	}
 
     public void fillDB(){
