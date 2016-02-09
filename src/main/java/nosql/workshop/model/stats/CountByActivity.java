@@ -1,6 +1,6 @@
 package nosql.workshop.model.stats;
 
-public class CountByActivity {
+public class CountByActivity implements Comparable<CountByActivity> {
 
     private String activite;
     private long total;
@@ -30,5 +30,15 @@ public class CountByActivity {
 
     public void setTotal(long total) {
         this.total = total;
+    }
+    
+    @Override
+    public int compareTo(CountByActivity other){
+    	if(this.getTotal() <= other.getTotal()){
+    		return 1;
+    	}
+    	else{
+    		return -1;
+    	}
     }
 }
