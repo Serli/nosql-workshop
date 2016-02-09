@@ -3,18 +3,12 @@ package nosql.workshop.services;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
-import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -42,7 +36,7 @@ public class InstallationService {
     }
 
     public Installation get(String numero) {
-        return new Installation();
+        return installations.findOne("{_id: '" + numero + "'}").as(Installation.class);
     }
 
     public InstallationsStats stats() {
