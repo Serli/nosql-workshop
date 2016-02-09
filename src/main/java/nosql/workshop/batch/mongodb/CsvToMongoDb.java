@@ -13,6 +13,7 @@ import java.util.Date;
  */
 
 public class CsvToMongoDb {
+
     public static void main(String[] args) {
 
         createInstallations();
@@ -21,12 +22,10 @@ public class CsvToMongoDb {
     }
 
     public static void createInstallations() {
-        String givenUri = System.getenv("MONGOLAB_URI");
-        String uri = givenUri == null ? "mongodb://localhost:27017/nosql-workshop" : givenUri;
-        MongoClientURI mongoClientURI = new MongoClientURI(uri);
-        MongoClient mongoClient = new MongoClient(mongoClientURI);
-        DB db = mongoClient.getDB(mongoClientURI.getDatabase());
-        DBCollection col = db.getCollection("installations");
+
+        DBCollection col = getCollection();
+        col.drop();
+
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/installations.csv");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             reader.lines()
@@ -34,7 +33,6 @@ public class CsvToMongoDb {
                     .filter(line -> line.length() > 0)
                     .map(line -> line.split("\",\""))
                     .forEach(columns -> {
-                        System.out.println(columns[28]);
                         String nom = columns[0].replaceAll("[\\\"]",""); //enlever les caractères spéciaux en trop dans le nom
                         DBObject dbo = new BasicDBObject("_id", columns[1])
                                 .append("nom", nom)
@@ -73,12 +71,8 @@ public class CsvToMongoDb {
     }
 
     public static void createEquipements() {
-        String givenUri = System.getenv("MONGOLAB_URI");
-        String uri = givenUri == null ? "mongodb://localhost:27017/nosql-workshop" : givenUri;
-        MongoClientURI mongoClientURI = new MongoClientURI(uri);
-        MongoClient mongoClient = new MongoClient(mongoClientURI);
-        DB db = mongoClient.getDB(mongoClientURI.getDatabase());
-        DBCollection col = db.getCollection("installations");
+
+        DBCollection col = getCollection();
 
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/equipements.csv");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -103,12 +97,8 @@ public class CsvToMongoDb {
     }
 
     public static void createActivites() {
-        String givenUri = System.getenv("MONGOLAB_URI");
-        String uri = givenUri == null ? "mongodb://localhost:27017/nosql-workshop" : givenUri;
-        MongoClientURI mongoClientURI = new MongoClientURI(uri);
-        MongoClient mongoClient = new MongoClient(mongoClientURI);
-        DB db = mongoClient.getDB(mongoClientURI.getDatabase());
-        DBCollection col = db.getCollection("installations");
+
+        DBCollection col = getCollection();
 
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/activites.csv");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -134,5 +124,17 @@ public class CsvToMongoDb {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static DBCollection getCollection() {
+
+        String givenUri = System.getenv("MONGOLAB_URI");
+        String uri = givenUri == null ? "mongodb://localhost:27017/nosql-workshop" : givenUri;
+        MongoClientURI mongoClientURI = new MongoClientURI(uri);
+        MongoClient mongoClient = new MongoClient(mongoClientURI);
+        DB db = mongoClient.getDB(mongoClientURI.getDatabase());
+        DBCollection col = db.getCollection("installations");
+
+        return col;
     }
 }
