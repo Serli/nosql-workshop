@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.mongodb.*;
-import org.jongo.Jongo;
-import org.jongo.MongoCollection;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -139,7 +137,7 @@ public class ImportCSV {
 				// use comma as separator
 				String[] data = line.split(cvsSplitBy);
 
-				equipement = new BasicDBObject("type", "Equipement")
+				equipement = new BasicDBObject()
 						.append("numero", data[4]) // EquipemementID
 						.append("nom", data[5]) // EquNom
 						.append("type", data[7]) // EquipemementTypeLib
@@ -187,16 +185,10 @@ public class ImportCSV {
 			if ((line = br.readLine()) != null) {
 				//String[] headers = line.split(cvsSplitBy);
 			}
-			DBObject activite = new BasicDBObject();
 
 			while ((line = br.readLine()) != null) {
 				line = line.substring(1, line.length() - 1);
 				String[] data = line.split(cvsSplitBy);
-
-				activite = new BasicDBObject("type", "Activite")
-						.append("code", getDataOrElse(data, 4, "")) //Activité code
-						.append("nom", getDataOrElse(data, 5, "")) // Activité libellé
-						.append("niveau", getDataOrElse(data, 9, "")); // Niveau effectivement pratiqué
 
 				BasicDBObject searchQuery = new BasicDBObject(
 						"equipements",
@@ -208,8 +200,8 @@ public class ImportCSV {
 
 				BasicDBObject updateQuery = new BasicDBObject(
 						"$push",
-						new BasicDBObject("equipements.$.activites", activite)
-						);
+						new BasicDBObject("equipements.$.activites", getDataOrElse(data, 5, ""))
+				);
 				installations.update(searchQuery, updateQuery);
 			}
 		} catch (FileNotFoundException e) {

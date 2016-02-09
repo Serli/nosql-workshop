@@ -37,13 +37,12 @@ public class InstallationResource {
 
     @Get("/random")
     public Installation random() {
-        return installationService.random();
+        return this.installationService.random();
     }
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
-
+        return this.installationService.search(context);
     }
 
     @Get("/geosearch")

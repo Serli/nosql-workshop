@@ -1,5 +1,6 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -51,7 +52,7 @@ public class InstallationService {
     
     public List<Installation> list() throws IOException {
     	MongoCursor<Installation> all = installations.find().as(Installation.class);
-    	ArrayList<Installation> list = new ArrayList<Installation>();
+    	List<Installation> list = new ArrayList<Installation>();
     	try {
 			while(all.hasNext()) {
 				Installation inst = all.next();
@@ -70,11 +71,13 @@ public class InstallationService {
     
     public List<Installation> search(Context context) {
     	String query = context.get("query");
-    	ArrayList<Installation> installations = new ArrayList<Installation>();
-    	ArrayList<Installation> installations = this.installations.aggregate("{$project:{sender:1}}")
-    			.and("{$match:{tags:'read'}}")
+    	//List<Installation> installations =
+    	List<Installation> list = Lists.newArrayList(
+    			(Iterator<Installation>)
+    			this.installations.aggregate("{$project:{sender:1}}")
+    			.and("{$match:{tags:'#'}}", query)
     			.and("{$limit:10}")
-    			.as(Installation.class);
-        return null;
+    			.as(Installation.class));
+        return list;
     }
 }
