@@ -5,6 +5,8 @@ import com.google.inject.Singleton;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import org.jongo.MongoCollection;
+import org.jongo.MongoCursor;
+import org.omg.CORBA.SystemException;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -29,14 +31,13 @@ public class InstallationService {
     }
 
     public Installation random() {
-        // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
-        Installation installation = new Installation();
-        installation.setNom("Mon Installation");
-        installation.setEquipements(Arrays.asList(new Equipement()));
-        installation.setAdresse(new Adresse());
-        Location location = new Location();
-        location.setCoordinates(new double[]{3.4, 3.2});
-        installation.setLocation(location);
-        return installation;
+    	int nb = (int) installations.count();
+    	Installation installation = installations.find().skip((int) (Math.random()*nb + 1)).as(Installation.class).next();
+    	return installation;
+    }
+    
+    public Installation get(String number){
+    	Installation installation = installations.findOne(String.format("{_id: '%s'}", number)).as(Installation.class);
+    	return installation;
     }
 }

@@ -29,8 +29,9 @@ public class InstallationResource {
     }
 
     @Get("/:numero")
-    public Installation get(String numero) {
-        return null;
+    public Installation get(String number) {
+    	System.out.println("bla");
+    	return installationService.get(number);
     }
 
 
