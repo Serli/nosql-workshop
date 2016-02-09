@@ -3,8 +3,6 @@ package nosql.workshop.services;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.searchbox.client.JestClient;
-import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
@@ -25,12 +23,10 @@ public class InstallationService {
     public static final String COLLECTION_NAME = "installations";
 
     private final MongoCollection installations;
-    private final JestClient elasticClient;
 
     @Inject
     public InstallationService(MongoDB mongoDB) throws UnknownHostException {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
-        this.elasticClient = ESConnectionUtil.createClient();
     }
 
     public Installation random() {
@@ -61,6 +57,10 @@ public class InstallationService {
                 lng, lat, dist).as(Installation.class).iterator());
     }
 
+    /**
+     * Computes statistics on the installations
+     * @return InstallationStats a statistics object
+     */
     public InstallationsStats stats() {
         InstallationsStats stats = new InstallationsStats();
 
@@ -79,11 +79,10 @@ public class InstallationService {
                 .and("{ $project : { _id : 0, average : 1 } }").as(Average.class).next();
         stats.setAverageEquipmentsPerInstallation(averageEquipementsPerInstallation.getAverage());
 
-        Installation installationWithMaxEquipements = installations.aggregate("{$project : {nbEquip : {$size: '$equipements'}}}")
-                .and("{$sort : {nbEquip : -1}}")
-                .and("{$limit : 1}").as(Installation.class).next();
-        installationWithMaxEquipements = installations.findOne("{_id : # }", installationWithMaxEquipements.get_id()).as(Installation.class);
-
+        Installation installationWithMaxEquipements = installations.aggregate("{ $project : { nbEquip : { $size: '$equipements' } } }")
+                .and("{ $sort : { nbEquip : -1 } }")
+                .and("{ $limit : 1 }").as(Installation.class).next();
+        installationWithMaxEquipements = installations.findOne("{ _id : # }", installationWithMaxEquipements.get_id()).as(Installation.class);
         stats.setInstallationWithMaxEquipments(installationWithMaxEquipements);
 
         return stats;
