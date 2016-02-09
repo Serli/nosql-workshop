@@ -26,18 +26,13 @@ public class ImportCSV {
 		DB db = mongoClient.getDB("nosql-workshop");
 
 		DBCollection installations = db.getCollection("installations");
-		DBCollection equipements = db.getCollection("equipements");
-        DBCollection activites = db.getCollection("activites");
         
-		importInstallation(installations, equipements);
-		importEquipement(equipements, installations);
-
-		//importEquipement(equipements, activites);
-        //importActivite(activites);
-		
+		importInstallation(installations);
+		importEquipement(installations);
+        importActivite(installations);
 	}
 	
-	public static void importInstallation(DBCollection installations, DBCollection equipements) {
+	public static void importInstallation(DBCollection installations) {
 
 
 		String csvFile = "src/main/resources/batch/csv/installations.csv";
@@ -109,7 +104,7 @@ public class ImportCSV {
 	}
 	
 
-	public static void importEquipement(DBCollection equipements, DBCollection installations) {
+	public static void importEquipement(DBCollection installations) {
         String csvFile = "src/main/resources/batch/csv/equipements.csv";
         BufferedReader br = null;
         String line = "";
@@ -130,7 +125,7 @@ public class ImportCSV {
                 String[] data = line.split(cvsSplitBy);
 
                 equipement = new BasicDBObject("type", "Equipement")
-                        .append("numero", data[2]) // InsNumeroInstall
+                        .append("numero", data[4]) // EquipemementID
                         .append("nom", data[5]) // EquNom
                         .append("type", data[7]) // EquipemementTypeLib
                         .append("famille", data[9]); // FamilleFicheLib
@@ -146,8 +141,6 @@ public class ImportCSV {
 					cursor.close();
 				}*/
             }
-
-            // TODO update installation with equipementID
             
             
         } catch (FileNotFoundException e) {
@@ -165,7 +158,7 @@ public class ImportCSV {
         }
     }
 
-    public static void importActivite(DBCollection activites) {
+    public static void importActivite(DBCollection installations) {
 
         String csvFile = "src/main/resources/batch/csv/activites.csv";
         BufferedReader br = null;
@@ -189,14 +182,24 @@ public class ImportCSV {
                         .append("code", getDataOrElse(data, 4, "")) //Activité code
                         .append("nom", getDataOrElse(data, 5, "")) // Activité libellé
                         .append("niveau", getDataOrElse(data, 9, "")); // Niveau effectivement pratiqué
-                activites.insert(activite);
+
+                BasicDBObject searchQuery = new BasicDBObject(
+                        "equipements",
+                        new BasicDBObject(
+                                "$elemMatch",
+                                new BasicDBObject("numero", getDataOrElse(data, 2, ""))
+                        )
+                );
+
+                BasicDBObject updateQuery = new BasicDBObject(
+                        "$push",
+                        new BasicDBObject("equipements.$.activites", activite)
+                );
+                installations.update(searchQuery, updateQuery);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ArrayIndexOutOfBoundsException e){
-            System.out.println(line);
             e.printStackTrace();
         } finally {
             if (br != null) {
@@ -210,7 +213,7 @@ public class ImportCSV {
     }
 
     private static String getDataOrElse(String[] data, int index, String or){
-        return index < data.length ? data[index] : or;
+        return index < data.length ? data[index].replace(" ", "") : or;
     }
 
 }
