@@ -1,4 +1,4 @@
-package nosql.workshop.batch.mongodb;
+package nosql.workshop.batch;
 
 import com.mongodb.*;
 import com.mongodb.util.JSON;
