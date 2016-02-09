@@ -5,7 +5,7 @@ import com.mongodb.util.JSON;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
-import nosql.workshop.connection.ESConnectionUtil;
+import nosql.workshop.utils.JestConnection;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -23,7 +23,7 @@ public class MongoDbToElasticSearch {
         MongoClient mongoClient = new MongoClient();
 
         // Connect ElasticSearch
-        JestClient elasticClient = ESConnectionUtil.createClient();
+        JestClient elasticClient = JestConnection.createClient();
 
         // Get installations from MongoDB
         DB db = mongoClient.getDB("nosql-workshop");
