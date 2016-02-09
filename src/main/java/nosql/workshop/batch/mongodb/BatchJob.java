@@ -63,10 +63,6 @@ public class BatchJob {
 
                             collection.insertOne(doc);
                         });
-
-
-
-
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -112,12 +108,12 @@ public class BatchJob {
                 throw new UncheckedIOException(e);
             }
 
+            // add index for search
+            db.getCollection("installations").createIndex(new Document("location", "2dsphere"));
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
 }
