@@ -32,7 +32,7 @@ public class MongoDbToElasticSearch {
         // Get installations from MongoDB
         DB db = mongoClient.getDB("nosql-workshop");
         DBCollection installations = db.getCollection("installations");
-        DBCursor cursor = installations.find(new BasicDBObject(), new BasicDBObject("dateMiseAJourFiche", "0"));
+        DBCursor cursor = installations.find(new BasicDBObject());
 
         // Insert installations in ElasticSearch
         DBObject installation;
@@ -42,6 +42,7 @@ public class MongoDbToElasticSearch {
             installation = cursor.next();
             id = (String) installation.get("_id");
             installationMap = installation.toMap();
+            installationMap.remove("dateMiseAJourFiche");
             installationMap.remove("_id");
             try {
                 elasticClient.execute(
