@@ -11,3 +11,6 @@ target/
 
 # Jenv configuration (see http://www.jenv.be/)
 .java-version
+
+.project
+bin/
