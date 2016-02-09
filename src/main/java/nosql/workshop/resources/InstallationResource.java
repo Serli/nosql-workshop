@@ -18,12 +18,8 @@ public class InstallationResource {
     private InstallationService service;
 
     @Inject
-    public InstallationResource() {
-        try {
-            service = new InstallationService();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+    public InstallationResource(InstallationService service) {
+        this.service = service;
     }
 
 
