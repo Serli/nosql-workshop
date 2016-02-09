@@ -36,21 +36,18 @@ public class InstallationService {
     }
 
     public Installation random() {
-        // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
-        Installation installation = new Installation();
-        installation.setNom("Mon Installation");
-        installation.setEquipements(Arrays.asList(new Equipement()));
-        installation.setAdresse(new Installation.Adresse());
-        Installation.Location location = new Installation.Location();
-        location.setCoordinates(new double[]{3.4, 3.2});
-        installation.setLocation(location);
+        MongoClient mongoClient = new MongoClient();
+        DB db = mongoClient.getDB("nosql-workshop");
+        Jongo jongo = new Jongo(db);
+        MongoCollection installations = jongo.getCollection("installations");
+        long size = installations.count();
+        Installation installation = installations.find().limit(1).skip((int) Math.floor(Math.random() * size)).as(Installation.class).next();
         return installation;
     }
 
     public List<Installation> getInstallations(){
         MongoClient mongoClient = new MongoClient();
         DB db = mongoClient.getDB("nosql-workshop");
-        //MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
         Jongo jongo = new Jongo(db);
         MongoCollection installations = jongo.getCollection("installations");
         MongoCursor<Installation> all = installations.find().as(Installation.class);
