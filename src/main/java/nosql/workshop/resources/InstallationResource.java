@@ -21,18 +21,16 @@ public class InstallationResource {
         this.installationService = installationService;
     }
 
-
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        return null;
+        return installationService.list();
     }
 
     @Get("/:numero")
     public Installation get(String numero) {
         return installationService.get(numero);
     }
-
 
     @Get("/random")
     public Installation random() {
@@ -42,18 +40,15 @@ public class InstallationResource {
     @Get("/search")
     public List<Installation> search(Context context) {
         return null;
-
     }
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
         return null;
-
     }
 
     @Get("/stats")
     public InstallationsStats stats() {
         return null;
-
     }
 }

@@ -35,10 +35,8 @@ public class MongoDbToElasticSearch {
                 .defaultType("installation");
         // Iterates over documents
         cursor.forEach(installation -> {
-            installation = cursor.next();
             Map installationMap = installation.toMap();
             installationMap.remove("dateMiseAJourFiche");
-            installationMap.remove("_id");
             // Add action to add current document in ElasticSearch
             bulkBuilder.addAction(
                     new Index.Builder(
@@ -46,6 +44,7 @@ public class MongoDbToElasticSearch {
                     ).id((String) installation.get("_id")).build()
             );
         });
+
         // Insert data into ElasticSearch
         try {
             elasticClient.execute(bulkBuilder.build());

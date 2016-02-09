@@ -6,9 +6,12 @@ import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import org.bson.types.ObjectId;
 import org.jongo.MongoCollection;
+import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static nosql.workshop.model.Installation.*;
 
@@ -16,6 +19,7 @@ import static nosql.workshop.model.Installation.*;
  * Service permettant de manipuler les installations sportives.
  */
 @Singleton
+@SuppressWarnings("unchecked")
 public class InstallationService {
     /**
      * Nom de la collection MongoDB.
@@ -43,6 +47,13 @@ public class InstallationService {
 
     public Installation get(String numero) {
         return installations.findOne(String.format("{ _id : '%s' }", numero)).as(Installation.class);
+    }
+
+    public List<Installation> list() {
+        MongoCursor<Installation> cursor = installations.find().as(Installation.class);
+        List<Installation> list = new ArrayList<>();
+        cursor.forEach(installation -> list.add(installation));
+        return list;
     }
 
 }
