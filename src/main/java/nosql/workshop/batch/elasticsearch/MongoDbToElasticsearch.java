@@ -30,11 +30,11 @@ public class MongoDbToElasticsearch {
         mongoDbToElasticsearch.writeToElastic();
     }
 
-    public List<DBObject> getInstallations(DBCursor cursor){
-        List<DBObject> itemList = new ArrayList<>();
+    public List<Index> getInstallations(DBCursor cursor){
+        List<Index> itemList = new ArrayList<>();
 
         while(cursor.hasNext()){
-            itemList.add(cursor.next());
+            itemList.add(createIndex(cursor.next()));
         }
 
         return itemList;
@@ -42,7 +42,7 @@ public class MongoDbToElasticsearch {
 
     public void writeToElastic(){
         DB db = mongoClient.getDB("nosql-workshop");
-        DBCollection col = db.getCollection("installation");
+        DBCollection col = db.getCollection("installations");
         DBCursor cursor = col.find();
 
         String connectionUrl = "http://localhost:9200";
@@ -53,13 +53,10 @@ public class MongoDbToElasticsearch {
                 .build());
         JestClient client = factory.getObject();
 
-        Map<String, Object> source = new HashMap<>();
-        source.put("installation", this.getInstallations(cursor));
-
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
                 .defaultType("installation")
-                .addAction(new Index.Builder(source).build())
+                .addAction(getInstallations(cursor))
                 .build();
 
         try {
@@ -67,5 +64,15 @@ public class MongoDbToElasticsearch {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static Index createIndex(DBObject object){
+        Map<String, Object> source = new HashMap<String, Object>();
+        String id = object.get("_id").toString();
+        object.removeField("_id");
+        //object.removeField("dateMiseAJourFiche");
+        source.put("installation", object);
+        return new Index.Builder(object).id(id).build();
+
     }
 }

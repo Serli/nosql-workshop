@@ -39,7 +39,7 @@ public class CsvToMongo {
 
     public void installations() {
         DB db = mongoClient.getDB("nosql-workshop");
-        DBCollection col = db.getCollection("installation");
+        DBCollection col = db.getCollection("installations");
         List<String[]> myEntries = readCSV("src\\main\\resources\\batch\\csv\\installations.csv");
         myEntries.stream()
                 .skip(1)
@@ -85,7 +85,7 @@ public class CsvToMongo {
 
     public void equipements() {
         DB db = mongoClient.getDB("nosql-workshop");
-        DBCollection col = db.getCollection("installation");
+        DBCollection col = db.getCollection("installations");
         List<String[]> myEntries = readCSV("src\\main\\resources\\batch\\csv\\equipements.csv");
         myEntries.stream()
                 .skip(1)
@@ -104,7 +104,7 @@ public class CsvToMongo {
 
     public void activities() {
         DB db = mongoClient.getDB("nosql-workshop");
-        DBCollection col = db.getCollection("installation");
+        DBCollection col = db.getCollection("installations");
         List<String[]> myEntries = readCSV("src\\main\\resources\\batch\\csv\\activites.csv");
         myEntries.stream()
                 .skip(1)

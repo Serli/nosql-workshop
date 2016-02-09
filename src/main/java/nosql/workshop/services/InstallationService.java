@@ -20,7 +20,7 @@ public class InstallationService {
     /**
      * Nom de la collection MongoDB.
      */
-    public static final String COLLECTION_NAME = "installation";
+    public static final String COLLECTION_NAME = "installations";
 
     private final MongoCollection installations;
 
