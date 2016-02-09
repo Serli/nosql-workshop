@@ -3,7 +3,7 @@ package nosql.workshop.model;
 import org.jongo.marshall.jackson.oid.MongoId;
 
 /**
- * Created by Samuel Enguehard on 09/02/2016.
+ * Created by SamNag on 09/02/2016.
  */
 public class Activite {
 

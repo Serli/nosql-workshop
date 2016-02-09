@@ -27,9 +27,11 @@ public class ImportCSV {
 
 		DBCollection installations = db.getCollection("installations");
 		DBCollection equipements = db.getCollection("equipements");
+        DBCollection activites = db.getCollection("activites");
 		
-		importInstallation(installations);
-		importEquipement(equipements);
+		//importInstallation(installations);
+		//importEquipement(equipements);
+        importActivite(activites);
 		
 	}
 	
@@ -104,52 +106,99 @@ public class ImportCSV {
 	
 
 	public static void importEquipement(DBCollection equipements) {
+        String csvFile = "src/main/resources/batch/csv/equipements.csv";
+        BufferedReader br = null;
+        String line = "";
+        String cvsSplitBy = ",";
 
-		String csvFile = "src/main/resources/batch/csv/equipements.csv";
-		BufferedReader br = null;
-		String line = "";
-		String cvsSplitBy = ",";
+        try {
 
-		try {
+            br = new BufferedReader(new FileReader(csvFile));
 
-			br = new BufferedReader(new FileReader(csvFile));
+            if ((line = br.readLine()) != null) {
+                //String[] headers = line.split(cvsSplitBy);
+            }
+            DBObject equipement = new BasicDBObject();
 
-			if ((line = br.readLine()) != null) {
-				//String[] headers = line.split(cvsSplitBy);
-			}
-			DBObject equipement = new BasicDBObject();
+            while ((line = br.readLine()) != null) {
 
-			while ((line = br.readLine()) != null) {
+                // use comma as separator
+                String[] data = line.split(cvsSplitBy);
 
-				// use comma as separator
-				String[] data = line.split(cvsSplitBy);
-
-				equipement = new BasicDBObject("type", "Equipement")
-						.append("numero", data[4]) // EquipementID
-						.append("nom", data[5]) // EquNom
-						.append("type", data[7]) // EquipemementTypeLib
-						.append("famille", data[9]); // FamilleFicheLib
-
-				equipements.insert(equipement);
-
-			}
+                equipement = new BasicDBObject("type", "Equipement")
+                        .append("_id", data[4]) // EquipementId
+                        .append("numero", data[2]) // InsNumeroInstall
+                        .append("nom", data[5]) // EquNom
+                        .append("type", data[7]) // EquipemementTypeLib
+                        .append("famille", data[9]); // FamilleFicheLib
 
 
+            }
+            equipements.insert(equipement);
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+            // TODO update installation with equipementID
 
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void importActivite(DBCollection activites) {
+
+        String csvFile = "src/main/resources/batch/csv/activites.csv";
+        BufferedReader br = null;
+        String line = "";
+        String cvsSplitBy = "\",\"";
+
+        try {
+
+            br = new BufferedReader(new FileReader(csvFile));
+
+            if ((line = br.readLine()) != null) {
+                //String[] headers = line.split(cvsSplitBy);
+            }
+            DBObject activite = new BasicDBObject();
+
+            while ((line = br.readLine()) != null) {
+                
+                String[] data = line.split(cvsSplitBy);
+
+                equipement = new BasicDBObject("type", "Equipement")
+                        .append("numero", getCSVData()) // EquipementID
+                        .append("nom", data[5]) // EquNom
+                        .append("type", data[7]) // EquipemementTypeLib
+                        .append("famille", data[9]); // FamilleFicheLib
+
+
+            }
+            equipements.insert(equipement);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static String getCSVData(int column, String[] line){
+        return line[column*2];
+    }
 
 }
