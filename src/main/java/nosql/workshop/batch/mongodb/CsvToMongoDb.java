@@ -1,7 +1,5 @@
 package nosql.workshop.batch.mongodb;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -9,7 +7,10 @@ import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 
 import java.io.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,20 +42,24 @@ public class CsvToMongoDb {
 
         finish = System.currentTimeMillis();
         System.out.println("Batch executed in " + (finish - start) + "ms.");
+
+        ensureIndexes();
     }
 
     private static MongoCollection getCollection() {
         MongoClient mongoClient = new MongoClient();
         MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
         MongoCollection installations = db.getCollection("installations");
+        installations.drop();
         return installations;
-
-        //Or with Jongo
-        /*MongoDB db = new MongoDB();
-        Jongo jongo = db.getJongo();
-        MongoCollection installations = jongo.getCollection("installations");*/
     }
 
+    private static void ensureIndexes() {
+        MongoClient mongoClient = new MongoClient();
+        MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
+        //db.runCommand("");
+
+    }
 
     private static void computeInstallations(MongoCollection installations) {
         List<Document> instList;
@@ -72,7 +77,6 @@ public class CsvToMongoDb {
             throw new UncheckedIOException(e);
         }
 
-        installations.drop();
         installations.insertMany(instList);
     }
 
