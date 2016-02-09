@@ -52,4 +52,13 @@ public class Equipement {
     public void setActivites(List<String> activites) {
         this.activites = activites;
     }
+
+	@Override
+	public String toString() {
+		return "Equipement [numero=" + numero + ", nom=" + nom + ", type="
+				+ type + ", famille=" + famille + ", activites=" + activites
+				+ "]";
+	}
+    
+    
 }
