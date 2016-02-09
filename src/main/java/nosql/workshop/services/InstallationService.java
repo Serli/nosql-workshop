@@ -1,5 +1,6 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Equipement;
@@ -32,22 +33,12 @@ public class InstallationService {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
     }
 
-    public Installation random() {
-
-        Installation installation = new Installation();
-        Installation installationR = installations.findOne().as(Installation.class);
-        installation.setNom(installationR.get_id());
-        installation.setNom(installationR.getNom());
-        installation.setEquipements(installationR.getEquipements());
-        installation.setAdresse(installationR.getAdresse());
-        Location location = new Location();
-        location.setCoordinates(installationR.getLocation().getCoordinates());
-        installation.setLocation(installationR.getLocation());
-        return installation;
+    public Installation random() {;
+        return installations.aggregate("{ $sample: { size: 1 } }").as(Installation.class).next();
     }
 
     public List<Installation> list() {
-        return new ArrayList<>();
+        return Lists.newArrayList(installations.find("").as(Installation.class).iterator());
     }
 
     public Installation get(String numero) {
