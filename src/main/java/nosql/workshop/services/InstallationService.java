@@ -28,7 +28,7 @@ public class InstallationService {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
     }
 
-    public Installation random() {
+   /* public Installation random() {
         // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
         Installation installation = new Installation();
         installation.setNom("Mon Installation");
@@ -38,5 +38,9 @@ public class InstallationService {
         location.setCoordinates(new double[]{3.4, 3.2});
         installation.setLocation(location);
         return installation;
+    }*/
+
+    public Installation random() {
+        return installations.aggregate("{ $sample: { size: 1 } }").as(Installation.class).next();
     }
 }
