@@ -3,6 +3,7 @@ package nosql.workshop.model;
 
 import org.jongo.marshall.jackson.oid.MongoId;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public class Installation {
 
-    @MongoId
+	@MongoId
     private String _id;
     private String nom;
     private Adresse adresse;
@@ -93,6 +94,16 @@ public class Installation {
     public void setEquipements(List<Equipement> equipements) {
         this.equipements = equipements;
     }
+    
+    @Override
+	public String toString() {
+		return "Installation [_id=" + _id + ", nom=" + nom + ", adresse="
+				+ adresse + ", location=" + location + ", multiCommune="
+				+ multiCommune + ", nbPlacesParking=" + nbPlacesParking
+				+ ", nbPlacesParkingHandicapes=" + nbPlacesParkingHandicapes
+				+ ", dateMiseAJourFiche=" + dateMiseAJourFiche
+				+ ", equipements=" + equipements + "]";
+	}
 
     public static class Adresse {
 
@@ -142,6 +153,13 @@ public class Installation {
             this.commune = commune;
         }
 
+		@Override
+		public String toString() {
+			return "Adresse [numero=" + numero + ", voie=" + voie
+					+ ", lieuDit=" + lieuDit + ", codePostal=" + codePostal
+					+ ", commune=" + commune + "]";
+		}
+
 
     }
 
@@ -165,5 +183,13 @@ public class Installation {
         public void setCoordinates(double[] coordinates) {
             this.coordinates = coordinates;
         }
+
+		@Override
+		public String toString() {
+			return "Location [type=" + type + ", coordinates="
+					+ Arrays.toString(coordinates) + "]";
+		}
+        
+        
     }
 }
