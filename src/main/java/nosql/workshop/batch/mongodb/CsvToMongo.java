@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class CsvToMongo {
 			.forEach(columns -> {
 				if (name.equals("installations")) this.saveInstallations(columns);
 				else if (name.equals("equipements")) this.saveEquipements(columns);
-				else if (name.equals("equipements")) this.saveEquipements(columns);
+				else this.saveActivites(columns);
 			});
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -47,12 +48,15 @@ public class CsvToMongo {
 
 
 	private void saveEquipements(String[] columns) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		for (int i = 0; i < keys.length; i++) {
-			map.put(keys[i], values[i]);
-		}
-		DBObject equipement = new BasicDBObject(map);
-		DBObject query = new BasicDBObject("Code INSEE", map.get("InsNumeroInstall"));
+		DBObject activites = new BasicDBObject("activities", Arrays.asList());
+		DBObject equipement = new BasicDBObject()
+			.append("numero", columns[4])
+			.append("nom", columns[5])
+			.append("type", columns[7])
+			.append("famille", columns[8])
+			.append("activites", activites);
+		
+		DBObject query = new BasicDBObject("Code INSEE", columns[2]);
 		DBObject update = new BasicDBObject("$push", new BasicDBObject("equipements", equipement));
 		this.collection.findAndModify(query, update);
 	}
