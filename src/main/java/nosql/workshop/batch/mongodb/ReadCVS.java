@@ -15,19 +15,12 @@ import java.util.*;
 
 public class ReadCVS {
 
-    public static void main(String[] args) {
-
-        ReadCVS obj = new ReadCVS();
-        obj.run("./src/main/resources/batch/csv/installations.csv");
-
-    }
-
     public static List<Map<String, String>> run(String path) {
 
         String csvFile = path;
         BufferedReader br = null;
         String line = "";
-        String cvsSplitBy = ",";
+        String cvsSplitBy = "\",\"";
         List<Map<String, String>> result = new ArrayList<>();
         List<String> head = new ArrayList<>();
 
@@ -41,19 +34,19 @@ public class ReadCVS {
 
                 if (firstLine){
                     head = Arrays.asList(line.split(cvsSplitBy));
-                    System.out.println(Arrays.asList(line.split(cvsSplitBy)).toString());
                     firstLine = false;
-                }
+                } else {
 
-                List<String> myLine = Arrays.asList(line.split(cvsSplitBy));
-                Map<String, String> map = new HashMap<>();
+                    List<String> myLine = Arrays.asList(line.split(cvsSplitBy));
+                    Map<String, String> map = new HashMap<>();
 
-                // use comma as separator
-                for (String e : myLine){
-                    int index = myLine.indexOf(e);
-                    map.put(head.get(index), e);
+                    // use comma as separator
+                    for (String e : myLine){
+                        int index = myLine.indexOf(e);
+                        map.put(head.get(index).replace("\"", ""), e.replace("\"", ""));
+                    }
+                    result.add(map);
                 }
-                result.add(map);
             }
 
         } catch (FileNotFoundException e) {
