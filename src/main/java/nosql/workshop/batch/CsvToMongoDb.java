@@ -26,9 +26,8 @@ public class CsvToMongoDb {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             reader.lines()
-                    .skip(2969)
+                    .skip(1)
                     .filter(line -> line.length() > 0)
-                    .limit(50)
                     .map(line -> line.split("\",\""))
                     .forEach(columns -> {
                             parseDocInstallation(columns, doc);
@@ -113,11 +112,6 @@ public class CsvToMongoDb {
         ;
     }
 
-    private static int getIntValue(String toClean) {
-        String val = cleanString(toClean);
-        return val.isEmpty() ? 0 : Integer.parseInt(val);
-    }
-
     public static void parseDocEquipement(String[] line, Document document) {
         document.append("numero", line[4])
                 .append("nom", line[5])
@@ -132,6 +126,11 @@ public class CsvToMongoDb {
      */
     private static String cleanString(String toClean) {
         return toClean.matches("\".*\"") ? toClean.substring(1, toClean.length() - 1).trim() : toClean.trim();
+    }
+
+    private static int getIntValue(String toClean) {
+        String val = cleanString(toClean);
+        return val.isEmpty() ? 0 : Integer.parseInt(val);
     }
 
 }
