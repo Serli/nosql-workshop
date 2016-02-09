@@ -97,7 +97,7 @@ public class CsvToMongoDb {
     private static void parseDocInstallation(String[] line, Document document) {
         // We consider the csv file coherent at all times
         document.append("_id", cleanString(line[1]))
-                .append("nom", cleanString(line[0]))
+                .append("nom", cleanString(line[0].substring(1)))
                 .append("adresse",
                         new Document().append("numero", cleanString(line[6]))
                                 .append("voie", cleanString(line[7]))
