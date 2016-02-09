@@ -37,9 +37,7 @@ public class SearchService {
     }
 
     public Double[] getLocation(String townName) {
-
-        /*JestClient client = ESConnectionUtil.createClient("");
-
+        JestClient client = ESConnectionUtil.createClient("");
         String query = "{\n" +
                         " \"query\": {\n" +
                         "     \"match\": {\n" +
@@ -48,11 +46,9 @@ public class SearchService {
                         "   }\n" +
                         "}";
 
-        Search search = new Search.Builder(query).addIndex("towns").addType("town").build();*/
+        Search search = new Search.Builder(query).addIndex("towns").addType("town").build();
 
-
-
-       /* try {
+        try {
             SearchResult searchResult = client.execute(search);
             List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
             if (!hits.isEmpty()) {
@@ -61,9 +57,8 @@ public class SearchService {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }*/
+        }
         return null;
-
     }
 
 }
