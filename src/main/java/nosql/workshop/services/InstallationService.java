@@ -4,8 +4,10 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.BasicDBObject;
+import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.InstallationsStats;
 import org.bson.types.ObjectId;
 import org.jongo.MongoCollection;
 import org.jongo.marshall.jackson.oid.MongoId;
@@ -44,5 +46,13 @@ public class InstallationService {
 
     public List<Installation> list() {
         return Lists.newArrayList(installations.find("").as(Installation.class).iterator());
+    }
+
+    public List<Installation> geoSearch(Context context){
+        return null;
+    }
+
+    public InstallationsStats stats() {
+        return null;
     }
 }

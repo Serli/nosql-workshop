@@ -20,11 +20,6 @@ public class SearchService {
 
     }
 
-    public List<Installation> geosearch(Context context) {
-        return null;
-
-    }
-
     public Double[] getLocation(String townName) {
         return new Double[]{0.,10.};
     }
