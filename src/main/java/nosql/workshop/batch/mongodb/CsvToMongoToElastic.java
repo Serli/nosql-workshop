@@ -7,23 +7,29 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
+import org.bson.Document;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 
 public class CsvToMongoToElastic {
 	DB db;
 	DBCollection collection;
 	Client elasticClient;
-	
+
 	public CsvToMongoToElastic() {
 		this.db = new MongoClient().getDB("nosql-workshop");
 		this.collection = db.getCollection("installation");
@@ -33,14 +39,37 @@ public class CsvToMongoToElastic {
 				.build();
 		this.elasticClient = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("host", 9300));
 	}
-	
+
 	private void saveToMongo() {
 		this.run("/batch/csv/installations.csv", "installations");
 		this.run("/batch/csv/equipements.csv", "equipements");
 		this.run("/batch/csv/activites.csv", "activites");
 	}
-	
+
 	private void saveToElastic() {
+		DBCursor cursor = this.collection.find();
+		UpdateRequest updateRequest = new UpdateRequest();
+		try {
+			while(cursor.hasNext()) {
+				updateRequest.index("installations");
+				updateRequest.type("installation");
+				updateRequest.id("1");
+				XContentBuilder a = XContentFactory.jsonBuilder()
+		        .startObject()
+		            .field("gender", "male")
+		        .endObject();
+				updateRequest.doc(a);
+				this.elasticClient.update(updateRequest).get(a);
+				cursor.next();
+			}
+		} finally {
+			cursor.close();
+		}
+
+
+
+
+
 		this.elasticClient.close();
 	}
 
@@ -73,11 +102,11 @@ public class CsvToMongoToElastic {
 
 	private void saveEquipements(String[] columns) {
 		DBObject equipement = new BasicDBObject()
-			.append("numero", columns[4])
-			.append("nom", columns[5])
-			.append("type", columns[7])
-			.append("famille", columns[8])
-			.append("activites", Arrays.asList());
+				.append("numero", columns[4])
+				.append("nom", columns[5])
+				.append("type", columns[7])
+				.append("famille", columns[8])
+				.append("activites", Arrays.asList());
 		DBObject query = new BasicDBObject("_id", columns[2]);
 		DBObject update = new BasicDBObject("$push", new BasicDBObject("equipements", equipement));
 		this.collection.findAndModify(query, update);
@@ -105,8 +134,8 @@ public class CsvToMongoToElastic {
 
 	public static void main(String[] args) {
 		CsvToMongoToElastic obj = new CsvToMongoToElastic();
-		obj.collection.drop();
-		obj.saveToMongo();
+		//obj.collection.drop();
+		//obj.saveToMongo();
 		obj.saveToElastic();
 	}
 }
