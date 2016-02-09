@@ -3,7 +3,11 @@ package nosql.workshop.services;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.Average;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
+import org.bson.types.ObjectId;
+import org.jongo.Aggregate;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
@@ -66,6 +70,65 @@ public class InstallationService {
     }
 
     public InstallationsStats getStats(){
-        return null;
+        long totalCount = computeTotalCount();
+        List<CountByActivity> countByActivity = computeCountByActivity();
+        Installation installationWithMaxEquipments = computeInstallwMaxEquip();
+        double averageEquipmentsPerInstallation = computeAverageEquipPerInstall();
+
+        InstallationsStats stats = new InstallationsStats();
+        stats.setTotalCount(totalCount);
+        stats.setCountByActivity(countByActivity);
+        stats.setInstallationWithMaxEquipments(installationWithMaxEquipments);
+        stats.setAverageEquipmentsPerInstallation(averageEquipmentsPerInstallation);
+
+        return stats;
+    }
+
+    private double computeAverageEquipPerInstall() {
+        Average average = installations.aggregate("{$unwind:'$equipements'}")
+                .and("{$group:{_id:'$nom', sum: {$sum:1}}}")
+                .and("{$group:{_id:0, average:{$avg:\"$sum\"}}}")
+                .as(Average.class).next();
+        return average.getAverage();
+    }
+
+    private Installation computeInstallwMaxEquip() {
+        String id = installations.aggregate("{$unwind:'$equipements'}")
+                .and("{$group: {_id: '$_id', len: {$sum: 1}}}")
+                .and("{$sort: {len: -1}}")
+                .and("{$limit: 1}")
+                .and("{$project: {id: '$_id'}}")
+                .as(PojoId.class).next().id;
+        return installations.findOne("{_id: #}", id).as(Installation.class);
+    }
+
+    private List<CountByActivity> computeCountByActivity() {
+        List<CountByActivity> countList = new ArrayList<>();
+        Aggregate.ResultsIterator<CountByActivity> iterator = installations.aggregate("{ $unwind: '$equipements'}")
+                .and("{$unwind: '$equipements.activites'}")
+                .and("{$group: {_id: '$equipement.activites', total:{$sum: 1}}}")
+                .and("{$project: {activite: '$_id', total: 1}}")
+                .as(CountByActivity.class);
+        iterator.forEach(countList::add);
+        return countList;
+    }
+
+    private long computeTotalCount() {
+        return installations.count();
+    }
+
+    private static class PojoId {
+        private String id;
+
+        public PojoId() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
     }
 }
