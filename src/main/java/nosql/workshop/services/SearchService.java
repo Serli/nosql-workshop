@@ -5,20 +5,15 @@ import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
-import io.searchbox.core.Suggest;
-import io.searchbox.core.SuggestResult;
-import nosql.workshop.connection.ESConnectionUtil;
-import nosql.workshop.model.Installation;
 import nosql.workshop.model.suggest.TownSuggest;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import nosql.workshop.utils.JestConnection;
+import nosql.workshop.model.Installation;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Search service permet d'encapsuler les appels vers ElasticSearch
@@ -30,9 +25,14 @@ public class SearchService {
 
     @Inject
     public SearchService() {
-        this.elasticClient = ESConnectionUtil.createClient();
+        this.elasticClient = JestConnection.createClient();
     }
 
+    /**
+     * Gets the list of the installations matching a given string.
+     * @param search string to search
+     * @return list of installations
+     */
     public List<Installation> list(String search) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.multiMatchQuery(search, "nom", "adresse.*", "equipements.*"));
@@ -40,10 +40,36 @@ public class SearchService {
                 .addIndex("installations")
                 .addType("installation")
                 .build();
-        SearchResult result = null;
         try {
-            result = elasticClient.execute(research);
+            SearchResult result = elasticClient.execute(research);
             return result.getSourceAsObjectList(Installation.class);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Gets the location of a town.
+     * @param town town to get the location
+     * @return location of the town
+     */
+    public Double[] locationOf(String town) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("townname", town));
+        Search research = new Search.Builder(searchSourceBuilder.toString())
+                .addIndex("towns")
+                .addType("town")
+                .build();
+        try {
+            SearchResult result = elasticClient.execute(research);
+            JsonObject hits = result.getJsonObject().get("hits").getAsJsonObject();
+            if (hits.get("total").getAsInt() == 1) {
+                JsonObject hit = hits.get("hits").getAsJsonArray().get(0).getAsJsonObject().get("_source").getAsJsonObject();
+                Double[] location = {hit.get("x").getAsDouble(), hit.get("y").getAsDouble()};
+                return location;
+            } else {
+                return null;
+            }
         } catch (IOException e) {
             return null;
         }

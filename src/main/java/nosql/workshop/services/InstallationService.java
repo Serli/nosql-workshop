@@ -4,9 +4,9 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
-import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
+import nosql.workshop.utils.JestConnection;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
@@ -28,7 +28,7 @@ public class InstallationService {
     @Inject
     public InstallationService(MongoDB mongoDB) throws UnknownHostException {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
-        this.elasticClient = ESConnectionUtil.createClient();
+        this.elasticClient = JestConnection.createClient();
     }
 
     public Installation random() {
