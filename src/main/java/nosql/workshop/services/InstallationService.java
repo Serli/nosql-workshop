@@ -52,10 +52,10 @@ public class InstallationService {
     }
 
     public List<Installation> geosearch(Double lat, Double lng, Integer distance) {
-        installations.ensureIndex( "{ \"location\" : \"2dsphere\" }");
+        installations.ensureIndex( "{ location : '2dsphere' }");
         return Lists.newArrayList(
                 installations
-                .find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + lat + ", " + lng + " ]}, $maxDistance : " + distance + "}}}")
+                .find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + lng + ", " + lat + " ]}, $maxDistance : " + distance + "}}}")
                 .as(Installation.class).iterator()
         );
     }
