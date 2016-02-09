@@ -50,7 +50,7 @@ public class InstallationResource {
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        return searchService.geosearch(context);
+        return null;
     }
 
     @Get("/stats")
