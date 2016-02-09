@@ -8,8 +8,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.stream.Collectors;
-
 import org.jongo.Jongo;
 
 import nosql.workshop.services.MongoDB;

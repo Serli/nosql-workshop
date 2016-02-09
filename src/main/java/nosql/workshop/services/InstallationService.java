@@ -2,8 +2,12 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.DBObject;
+
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+
+import org.jongo.FindOne;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
@@ -29,14 +33,6 @@ public class InstallationService {
     }
 
     public Installation random() {
-        // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
-        Installation installation = new Installation();
-        installation.setNom("Mon Installation");
-        installation.setEquipements(Arrays.asList(new Equipement()));
-        installation.setAdresse(new Adresse());
-        Location location = new Location();
-        location.setCoordinates(new double[]{3.4, 3.2});
-        installation.setLocation(location);
-        return installation;
+        return installations.findOne().as(Installation.class);
     }
 }
