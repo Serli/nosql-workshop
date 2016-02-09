@@ -33,15 +33,20 @@ public class SearchService {
         this.elasticClient = ESConnectionUtil.createClient();
     }
 
-    public List<Installation> list(String search) throws IOException {
+    public List<Installation> list(String search) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.multiMatchQuery(search, "nom", "adresse.*", "equipements.*"));
         Search research = new Search.Builder(searchSourceBuilder.toString())
                 .addIndex("installations")
                 .addType("installation")
                 .build();
-        SearchResult result = elasticClient.execute(research);
-        return result.getSourceAsObjectList(Installation.class);
+        SearchResult result = null;
+        try {
+            result = elasticClient.execute(research);
+            return result.getSourceAsObjectList(Installation.class);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
 }
