@@ -80,13 +80,12 @@ public class CSVtoMongo {
                     .append("famille", line.get("FamilleFicheLib")))));
         }
 
-   /*    for (Map<String, String> line : ReadCVS.run(pathActivites)) {
-            collection.update(new BasicDBObject("activites", new BasicDBObject("$elemMatch",
-                    line.get("Numéro de la fiche équipement"))),
-                    new BasicDBObject("$push",new BasicDBObject("activites",
-                            new BasicDBObject("activites.$.nom", line.get("Activité libellé")))));
+       for (Map<String, String> line : ReadCVS.run(pathActivites)) {
+           BasicDBObject searchQuery = new BasicDBObject("equipements", new BasicDBObject("$elemMatch", new BasicDBObject("numero", line.get("Numéro de la fiche équipement").trim())));
+           BasicDBObject updateQuery = new BasicDBObject("$push", new BasicDBObject("equipements.$.activites", line.get("Activité libellé")));
+           collection.update(searchQuery, updateQuery);
         }
-*/
+
     }
 
 

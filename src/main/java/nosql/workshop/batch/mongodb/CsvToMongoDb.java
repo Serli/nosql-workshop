@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
  * Created by chriswoodrow on 09/02/2016.
  */
 public class CsvToMongoDb {
+    // VOIR LA CLASSE CSVtoMondo et ReadCVS
     public static void main(String[] args) {
 
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/installations.csv");
