@@ -14,3 +14,6 @@ assets/*.csv
 
 # Jenv configuration (see http://www.jenv.be/)
 .java-version
+
+# Mongo data storage
+data/

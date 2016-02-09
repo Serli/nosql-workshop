@@ -8,7 +8,12 @@ import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Index;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Map;
 
+/**
+ * @author Killian
+ */
 public class MongoDbToElasticSearch {
 
     public static void main(String[] args) {
@@ -30,15 +35,28 @@ public class MongoDbToElasticSearch {
         DBCursor cursor = installations.find(new BasicDBObject(), new BasicDBObject("dateMiseAJourFiche", "0"));
 
         // Insert installations in ElasticSearch
-        Index index = new Index.Builder(JSON.serialize(cursor)).index("installations").type("installation").build();
-        try {
-            elasticClient.execute(index);
-        } catch (IOException ex) {
-            System.out.println(ex.toString());
+        DBObject installation;
+        String id;
+        Map installationMap;
+        while (cursor.hasNext()) {
+            installation = cursor.next();
+            id = (String) installation.get("_id");
+            installationMap = installation.toMap();
+            installationMap.remove("_id");
+            try {
+                elasticClient.execute(
+                        new Index.Builder(
+                                JSON.serialize(installationMap)
+                        ).index("installations").type("installation").id(id).build()
+                );
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
-        // Close MongoDB connection
+        // Close connections
         mongoClient.close();
+        elasticClient.shutdownClient();
 
     }
 
