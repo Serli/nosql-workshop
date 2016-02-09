@@ -2,21 +2,13 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.spi.InterceptorBinding;
-import io.searchbox.client.JestClient;
-import nosql.workshop.connection.ESConnectionUtil;
-import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
-import org.bson.types.ObjectId;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -28,12 +20,10 @@ public class InstallationService {
     public static final String COLLECTION_NAME = "installations";
 
     private final MongoCollection installations;
-    private final JestClient elasticClient;
 
     @Inject
     public InstallationService(MongoDB mongoDB) throws UnknownHostException {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
-        this.elasticClient = ESConnectionUtil.createClient();
     }
 
     public Installation random() {

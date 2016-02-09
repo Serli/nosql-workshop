@@ -14,6 +14,7 @@ import java.util.Map;
 /**
  * @author Killian
  */
+@SuppressWarnings("unchecked")
 public class MongoDbToElasticSearch {
 
     public static void main(String[] args) {
@@ -28,6 +29,7 @@ public class MongoDbToElasticSearch {
         DB db = mongoClient.getDB("nosql-workshop");
         DBCollection installations = db.getCollection("installations");
         DBCursor cursor = installations.find(new BasicDBObject());
+        cursor.setOptions(Bytes.QUERYOPTION_NOTIMEOUT);
 
         // Creates bulk builder
         Bulk.Builder bulkBuilder = new Bulk.Builder()
@@ -35,13 +37,17 @@ public class MongoDbToElasticSearch {
                 .defaultType("installation");
         // Iterates over documents
         cursor.forEach(installation -> {
+            String id = (String) installation.get("_id");
             Map installationMap = installation.toMap();
+            installationMap.remove("_id");
+            installationMap.put("id", id);
             installationMap.remove("dateMiseAJourFiche");
             // Add action to add current document in ElasticSearch
+            System.out.println(JSON.serialize(installationMap));
             bulkBuilder.addAction(
                     new Index.Builder(
                             JSON.serialize(installationMap)
-                    ).id((String) installation.get("_id")).build()
+                    ).id(id).build()
             );
         });
 
