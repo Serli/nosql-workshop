@@ -22,6 +22,7 @@ public class CsvToMongoDb {
         final MongoCollection<Document> dbCollection = db.getCollection("installations");
         Document doc = new Document();
 
+        // Imports the installation
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/installations.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
@@ -112,6 +113,11 @@ public class CsvToMongoDb {
         ;
     }
 
+    /**
+     * Handle a line "equipement" and returns a mongo-ready bson document
+     * @param line the line to parse
+     * @param document the document to fill - we pass it in for performance issues
+     */
     public static void parseDocEquipement(String[] line, Document document) {
         document.append("numero", line[4])
                 .append("nom", line[5])
