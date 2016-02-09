@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,13 +18,15 @@ import com.mongodb.MongoClient;
 
 public class CsvToMongo {
 	DB db;
-	
-	public CsvToMongo() {
-		 this.db = new MongoClient().getDB("nosql-workshop");
-	}
-	
-	public void run(String filename, String collection) {
+	DBCollection collection;
 
+	public CsvToMongo() {
+		this.db = new MongoClient().getDB("nosql-workshop");
+		this.collection = db.getCollection("installation");
+
+	}
+
+	public void run(String filename, String name) {
 		String csvFile = filename;
 		BufferedReader br = null;
 		String line = "";
@@ -31,7 +36,9 @@ public class CsvToMongo {
 			String[] keys = line.split(",");
 			while ((line = br.readLine()) != null) {
 				String[] values = line.split(",");
-				this.saveToMongo(keys, values, collection);
+				if (name.equals("installations")) this.saveInstallations(keys, values);
+				else if (name.equals("equipements")) this.saveEquipements(keys, values);
+				else this.saveEquipements(keys, values);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -47,22 +54,32 @@ public class CsvToMongo {
 			}
 		}
 		System.out.println("Done");
+
 	}
 
 
-	private void saveToMongo(String[] keys, String[] values, String collectionName) {
+	private void saveEquipements(String[] keys, String[] values) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		for (int i = 0; i < keys.length; i++) {
 			map.put(keys[i], values[i]);
 		}
-		 DBCollection collection = db.getCollection(collectionName);
-		 DBObject obj = new BasicDBObject(map);
-		 collection.insert(obj);
+		//this.collection.findAndModify (new BasicDBObject("Code INSEE", map.get("InsNumeroInstall")), )
+	}
+
+	private void saveInstallations(String[] keys, String[] values) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		for (int i = 0; i < keys.length; i++) {
+			map.put(keys[i], values[i]);
+		}
+		DBObject obj = new BasicDBObject();
+		this.collection.insert(obj);
 	}
 
 
 	public static void main(String[] args) {
 		CsvToMongo obj = new CsvToMongo();
-		obj.run("", "activities");
+		obj.run("/batch/csv/installations.csv", "installations");
+		obj.run("/batch/csv/equipements.csv", "equipements");
+		obj.run("/batch/csv/activites.csv", "activites");
 	}
 }
