@@ -27,46 +27,37 @@ public class CsvToMongo {
 	}
 
 	public void run(String filename, String name) {
-		String csvFile = filename;
-		BufferedReader br = null;
-		String line = "";
-		try {
-			br = new BufferedReader(new FileReader(csvFile));
-			line = br.readLine();
-			String[] keys = line.split(",");
-			while ((line = br.readLine()) != null) {
-				String[] values = line.split(",");
-				if (name.equals("installations")) this.saveInstallations(keys, values);
-				else if (name.equals("equipements")) this.saveEquipements(keys, values);
-				else this.saveEquipements(keys, values);
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		try (InputStream inputStream = CsvToMongo.class.getResourceAsStream(filename);
+				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+			reader.lines()
+			.skip(1)
+			.filter(line -> line.length() > 0)
+			.map(line -> line.split(","))
+			.forEach(columns -> {
+				if (name.equals("installations")) this.saveInstallations(columns);
+				else if (name.equals("equipements")) this.saveEquipements(columns);
+				else if (name.equals("equipements")) this.saveEquipements(columns);
+			});
 		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+			throw new UncheckedIOException(e);
 		}
 		System.out.println("Done");
 
 	}
 
 
-	private void saveEquipements(String[] keys, String[] values) {
+	private void saveEquipements(String[] columns) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		for (int i = 0; i < keys.length; i++) {
 			map.put(keys[i], values[i]);
 		}
-		//this.collection.findAndModify (new BasicDBObject("Code INSEE", map.get("InsNumeroInstall")), )
+		DBObject equipement = new BasicDBObject(map);
+		DBObject query = new BasicDBObject("Code INSEE", map.get("InsNumeroInstall"));
+		DBObject update = new BasicDBObject("$push", new BasicDBObject("equipements", equipement));
+		this.collection.findAndModify(query, update);
 	}
 
-	private void saveInstallations(String[] keys, String[] values) {
+	private void saveInstallations(String[] columns) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		for (int i = 0; i < keys.length; i++) {
 			map.put(keys[i], values[i]);
