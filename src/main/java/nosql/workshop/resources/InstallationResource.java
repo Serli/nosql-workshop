@@ -5,6 +5,7 @@ import net.codestory.http.Context;
 import net.codestory.http.annotations.Get;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
+import nosql.workshop.services.InstallationService;
 
 import java.util.List;
 
@@ -13,8 +14,11 @@ import java.util.List;
  */
 public class InstallationResource {
 
+    private final InstallationService installationService;
+
     @Inject
-    public InstallationResource() {
+    public InstallationResource(InstallationService installationService) {
+        this.installationService = installationService;
     }
 
 
@@ -32,8 +36,7 @@ public class InstallationResource {
 
     @Get("/random")
     public Installation random() {
-
-        return null;
+        return installationService.random();
     }
 
     @Get("/search")

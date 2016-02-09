@@ -1,27 +1,55 @@
 package nosql.workshop.model;
 
-import org.jongo.marshall.jackson.oid.MongoId;
+import java.util.List;
 
 /**
  * Equipement sportif.
  */
 public class Equipement {
 
-    public Equipement() {}
+    private String numero;
+    private String nom;
+    private String type;
+    private String famille;
+    private List<String> activites;
 
-    public Equipement(Integer id) {
-        numero = id;
+    public String getNumero() {
+        return this.numero;
     }
 
-    @MongoId
-    private Integer numero;
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
 
-    public String nom;
+    public String getNom() {
+        return nom;
+    }
 
-    public String type;
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
 
-    public String famille;
+    public String getType() {
+        return type;
+    }
 
-    public String[] activites;
+    public void setType(String type) {
+        this.type = type;
+    }
 
+    public String getFamille() {
+        return famille;
+    }
+
+    public void setFamille(String famille) {
+        this.famille = famille;
+    }
+
+    public List<String> getActivites() {
+        return activites;
+    }
+
+    public void setActivites(List<String> activites) {
+        this.activites = activites;
+    }
 }
