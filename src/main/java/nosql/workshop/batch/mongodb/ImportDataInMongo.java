@@ -1,14 +1,11 @@
 package nosql.workshop.batch.mongodb;
 
-import com.google.common.collect.Sets;
 import com.mongodb.*;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Marion Bechennec
@@ -103,9 +100,9 @@ public class ImportDataInMongo {
     }
 
     public static void main(String[] args) {
-        //insert installations
         ImportDataInMongo importer = new ImportDataInMongo();
 
+        //insert installations
         importer.insertInstallations();
         //update installations with equipement
         importer.updateEquipements();
