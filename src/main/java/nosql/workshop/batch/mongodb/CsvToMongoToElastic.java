@@ -7,6 +7,11 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -17,11 +22,26 @@ import com.mongodb.MongoClient;
 public class CsvToMongoToElastic {
 	DB db;
 	DBCollection collection;
-
+	Client elasticClient;
+	
 	public CsvToMongoToElastic() {
 		this.db = new MongoClient().getDB("nosql-workshop");
 		this.collection = db.getCollection("installation");
-
+		Settings settings = ImmutableSettings.settingsBuilder()
+				.put("cluster.name", "myClusterName")
+				.put("client.transport.sniff", true)
+				.build();
+		this.elasticClient = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("host", 9300));
+	}
+	
+	private void saveToMongo() {
+		this.run("/batch/csv/installations.csv", "installations");
+		this.run("/batch/csv/equipements.csv", "equipements");
+		this.run("/batch/csv/activites.csv", "activites");
+	}
+	
+	private void saveToElastic() {
+		this.elasticClient.close();
 	}
 
 	public void run(String filename, String name) {
@@ -86,8 +106,7 @@ public class CsvToMongoToElastic {
 	public static void main(String[] args) {
 		CsvToMongoToElastic obj = new CsvToMongoToElastic();
 		obj.collection.drop();
-		obj.run("/batch/csv/installations.csv", "installations");
-		obj.run("/batch/csv/equipements.csv", "equipements");
-		obj.run("/batch/csv/activites.csv", "activites");
+		obj.saveToMongo();
+		obj.saveToElastic();
 	}
 }
