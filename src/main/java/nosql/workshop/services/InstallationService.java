@@ -6,6 +6,7 @@ import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
+import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class InstallationService {
     /**
      * Nom de la collection MongoDB.
      */
-    public static final String COLLECTION_NAME = "installations";
+    public static final String COLLECTION_NAME = "installation";
 
     private final MongoCollection installations;
 
@@ -32,14 +33,16 @@ public class InstallationService {
     }
 
     public Installation random() {
-        // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
+
         Installation installation = new Installation();
-        installation.setNom("Mon Installation");
-        installation.setEquipements(Arrays.asList(new Equipement()));
-        installation.setAdresse(new Adresse());
+        Installation installationR = installations.findOne().as(Installation.class);
+        installation.setNom(installationR.get_id());
+        installation.setNom(installationR.getNom());
+        installation.setEquipements(installationR.getEquipements());
+        installation.setAdresse(installationR.getAdresse());
         Location location = new Location();
-        location.setCoordinates(new double[]{3.4, 3.2});
-        installation.setLocation(location);
+        location.setCoordinates(installationR.getLocation().getCoordinates());
+        installation.setLocation(installationR.getLocation());
         return installation;
     }
 
