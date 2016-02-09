@@ -12,7 +12,6 @@ import org.bson.Document;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
-import org.jongo.Oid;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -64,7 +63,8 @@ public class InstallationService {
     public Installation getId(String id){
         DB db = new MongoClient().getDB("nosql-workshop");
         Jongo jongo = new Jongo(db);
-        return jongo.getCollection("installations").findOne(Oid.withOid(id)).as(Installation.class);
+        String query = "{_id : '"+id+"'}";
+        return jongo.getCollection("installations").findOne(query).as(Installation.class);
     }
 
 }
