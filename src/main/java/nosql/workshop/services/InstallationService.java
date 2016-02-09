@@ -7,6 +7,7 @@ import com.mongodb.DBObject;
 import net.codestory.http.Query;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 
 import org.elasticsearch.common.collect.Lists;
@@ -15,6 +16,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -81,6 +83,7 @@ public class InstallationService {
 		long equipementCount=0;
 		int max = 0;
 		String maxId="";
+        List<CountByActivity> countByActivities = new ArrayList<CountByActivity>();
 		long count = installations.count();
 		Iterator<Installation> inst = installations.find().as(Installation.class);
 		List<Installation> list = Lists.newArrayList(inst);
@@ -91,10 +94,29 @@ public class InstallationService {
 				max = equipementSize;
 				maxId = i.get_id();
 			}
+
+
+            for(Equipement e : i.getEquipements()){
+                for(String activity : e.getActivites()){
+                    CountByActivity temp = new CountByActivity();
+                    temp.setActivite(activity);
+                    if(countByActivities.contains(temp)){
+                       countByActivities.get(countByActivities.indexOf(temp)).increment();
+                    }
+                    else{
+                        countByActivities.add(temp.increment());
+                    }
+                }
+            }
+
 		}
 		double averageEquipements = equipementCount/count;
 		Installation instWithMaxEquip = get(maxId);
-		
-		return null;
+		InstallationsStats ret = new InstallationsStats();
+        ret.setAverageEquipmentsPerInstallation(averageEquipements);
+        ret.setCountByActivity(countByActivities);
+        ret.setTotalCount(count);
+        ret.setInstallationWithMaxEquipments(instWithMaxEquip);
+		return new InstallationsStats();
 	}
 }
