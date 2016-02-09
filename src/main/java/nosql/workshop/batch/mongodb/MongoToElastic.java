@@ -49,18 +49,21 @@ public class MongoToElastic {
                 .build());
         JestClient client = factory.getObject();
 
-        List<DBObject> list = new ArrayList<>();
+        List<Index> list = new ArrayList<>();
+
         while(cursor.hasNext()){
-            list.add(cursor.next());
+            DBObject object = cursor.next();
+            String id = object.get("_id").toString();
+            object.removeField("_id");
+            list.add(new Index.Builder(object).id(id).build());
         }
         cursor.close();
 
         Map<String, Object> source = new HashMap<String, Object>();
-        source.put("installation", list);
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
                 .defaultType("installation")
-                .addAction(new Index.Builder(source).build())
+                .addAction(list)
                 .build();
 
         try {

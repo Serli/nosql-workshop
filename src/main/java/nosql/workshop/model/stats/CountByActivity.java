@@ -21,3 +21,14 @@ public class CountByActivity {
         this.total = total;
     }
 }
+
+
+/*
+
+stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$unwind: \"$equipements.activites\"}")
+                .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
+                .and("{$project: {activite: \"$_id\", total : 1}}")
+                .as(CountByActivity.class).iterator()));
+
+*/

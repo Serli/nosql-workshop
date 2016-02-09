@@ -32,7 +32,7 @@ public class TownsImporter {
                 .build());
         JestClient client = factory.getObject();
 
-        List<DBObject> list = new ArrayList<>();
+        List<Index> list = new ArrayList<>();
 
         for (Map<String, String> line : ReadCVS.run(pathTowns)) {
 
@@ -46,7 +46,7 @@ public class TownsImporter {
                             )
                     );
 
-            list.add(town);
+            list.add(new Index.Builder(town).id(line.get("OBJECTID")).build());
         }
 
         Map<String, Object> source = new HashMap<String, Object>();
@@ -54,7 +54,7 @@ public class TownsImporter {
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("towns")
                 .defaultType("town")
-                .addAction(new Index.Builder(source).build())
+                .addAction(list)
                 .build();
 
         try {

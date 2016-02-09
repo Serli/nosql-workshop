@@ -49,7 +49,13 @@ public class InstallationService {
     }
 
     public List<Installation> geoSearch(Context context){
-        return null;
+        String latitude = context.query().get("lat");
+        String longitude = context.query().get("lng");
+        String distance = context.query().get("distance");
+        installations.ensureIndex("{ location : '2dsphere' } " );
+        return Lists.newArrayList(installations.find(
+                "{location : { $near : { $geometry : { type : \"Point\", coordinates : [ "+longitude+", "+latitude+" ]}, $maxDistance : "+distance+"}}}"
+        ).as(Installation.class).iterator());
     }
 
     public InstallationsStats stats() {

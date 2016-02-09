@@ -22,13 +22,11 @@ import java.util.List;
 public class TownResource {
 
     private final SearchService searchService;
-    private final InstallationService installationService;
 
     @Inject
-    public TownResource(SearchService searchService, InstallationService installationService) {
+    public TownResource(SearchService searchService) {
 
             this.searchService = searchService;
-            this.installationService = installationService;
     }
 
     @Get("suggest/:text")
