@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObject;
 import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.bson.types.ObjectId;
 import org.jongo.MongoCollection;
@@ -59,6 +60,15 @@ public class InstallationService {
     }
 
     public InstallationsStats stats() {
-        return null;
+        InstallationsStats stats = new InstallationsStats();
+        /*stats.setAverageEquipmentsPerInstallation(installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$group: {numero: \"$nom\", sum:{$sum : 1}}}")
+                .and("{$group: {numero: 0, avg:{$avg : 1}}}").as(Double.class));*/
+        stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$unwind: \"$equipements.activites\"}")
+                .and("{$group: {numero: \"$equipements.activites\", total:{$sum : 1}}}")
+                .and("{$project: {activite: \"$numero\", total : 1}}")
+                .as(CountByActivity.class).iterator()));
+        return stats;
     }
 }
