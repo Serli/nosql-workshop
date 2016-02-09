@@ -1,9 +1,9 @@
 package nosql.workshop.services;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -11,9 +11,8 @@ import com.mongodb.DBObject;
 public class FillDb {
 	
 	public static void fillInstallations() throws IOException{
-		Files.lines(Paths.get("src/main/resources/batch/csv/installations.csv")).forEach(
-				x -> display(x)
-				);
+		List<String> lines = Files.readAllLines(Paths.get("src/main/resources/batch/csv/installations.csv"));
+		
 	}
 	
 	public static void fillEquipements() throws IOException{
@@ -49,14 +48,10 @@ public class FillDb {
 		System.out.println(s);
 	}
 	
-	public static void writeInstallations( String csv){
-		String[] data = csv.split(",");
-		DBObject object = new BasicDBObject("type","installation")
-							.append("name", data[0])
-							.append("",data[1])
-							.append("",data[2]);//TODO use a loop with the names given in the first csv line
-					
+	public static void writeInstallations(List<String> lines){
+		for(int i=1; i<lines.size(); i++){
+			DBObject object = new BasicDBObject("type","installation")
+							.append("name", "data");
+		}				
 	}
 }
-
-
