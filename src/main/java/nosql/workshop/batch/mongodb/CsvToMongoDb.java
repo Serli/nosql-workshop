@@ -56,8 +56,9 @@ public class CsvToMongoDb {
 		.append("nom", columns[5])
 		.append("type", columns[7])
 		.append("famille", columns[9]);
-		BasicDBObject obj2 = new BasicDBObject(EQUIPEMENTS,object);
-		connection.getDatabase().getCollection(INSTALLATIONS).update(new BasicDBObject("_id",columns[2]),obj2);
+
+		BasicDBObject pushDat= new BasicDBObject("$push",new BasicDBObject(EQUIPEMENTS,object));
+		connection.getDatabase().getCollection(INSTALLATIONS).findAndModify(new BasicDBObject("_id",columns[2]),pushDat);
 	//	connection.getCollection(INSTALLATIONS).update("{_id:" + columns[2] + "}").with("{$push : {"+EQUIPEMENTS+": #}}",object);
 		return object;
 	}
