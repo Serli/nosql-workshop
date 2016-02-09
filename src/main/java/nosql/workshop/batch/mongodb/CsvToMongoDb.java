@@ -165,9 +165,7 @@ public class CsvToMongoDb {
 				).replace('*', '"'));
 
 
-		connection.getCollection(INSTALLATIONS).ensureIndex(String.join("",
-				"{ *coordinates* : *geoHaystack* , *type* : 1 } , " ,
-				"{ *bucketSize* : 1 }").replace('*','"'));
+		connection.getCollection(INSTALLATIONS).ensureIndex("{*location*:*2dsphere*}".replace('*', '"'));
 	}
 
     public void fillDB(){

@@ -10,10 +10,12 @@ import nosql.workshop.model.Installation;
 
 import org.elasticsearch.common.collect.Lists;
 import org.jongo.FindOne;
+import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import static nosql.workshop.model.Installation.*;
@@ -58,6 +60,19 @@ public class InstallationService {
     	String lat = query.get("lat");
     	String lng = query.get("lng");
     	String distance = query.get("distance");
-    	return null;
+    	String geoQuery = "{location: "
+    						+ "{$near: "
+    							+ "{$geometry :"
+    								+ "{type: \"Point\","
+    									+ "coordinates :["+lat+","+lng+"]"
+    								+ "},"
+    								+ "$maxDistance: "+distance+""
+    							+ "}"
+    						+ "}"
+    					+ "}";
+    	Iterator<Installation> inst 
+    		= installations.find(geoQuery)
+    		.as(Installation.class);
+    	return Lists.newArrayList(inst);
     }
 }
