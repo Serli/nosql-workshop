@@ -30,6 +30,7 @@ public class InstallationResource {
 
     @Get("/:numero")
     public Installation get(String number) {
+    	System.out.println("bla");
     	return installationService.get(number);
     }
 

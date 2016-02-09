@@ -6,6 +6,7 @@ import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
+import org.omg.CORBA.SystemException;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -31,12 +32,12 @@ public class InstallationService {
 
     public Installation random() {
     	int nb = (int) installations.count();
-    	Installation installation = installations.find().skip((int) Math.random()*nb + 1).as(Installation.class).next();
+    	Installation installation = installations.find().skip((int) (Math.random()*nb + 1)).as(Installation.class).next();
     	return installation;
     }
     
     public Installation get(String number){
-    	Installation installation = installations.findOne("{_id: number}").as(Installation.class);
+    	Installation installation = installations.findOne(String.format("{_id: '%s'}", number)).as(Installation.class);
     	return installation;
     }
 }
