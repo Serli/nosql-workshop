@@ -11,4 +11,5 @@ public class Average {
     public void setAverage(double average) {
         this.average = average;
     }
+
 }

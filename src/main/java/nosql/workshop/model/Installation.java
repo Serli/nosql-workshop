@@ -94,6 +94,21 @@ public class Installation {
         this.equipements = equipements;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "_id='" + _id + '\'' +
+                "\n, nom='" + nom + '\'' +
+                "\n, adresse=" + adresse +
+                "\n, location=" + location +
+                "\n, multiCommune=" + multiCommune +
+                "\n, nbPlacesParking=" + nbPlacesParking +
+                "\n, nbPlacesParkingHandicapes=" + nbPlacesParkingHandicapes +
+                "\n, dateMiseAJourFiche=" + dateMiseAJourFiche +
+                "\n, equipements=" + equipements +
+                '}';
+    }
+
     public static class Adresse {
 
         private String numero;
