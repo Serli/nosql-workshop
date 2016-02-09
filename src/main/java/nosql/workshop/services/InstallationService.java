@@ -29,14 +29,14 @@ public class InstallationService {
     }
 
     public Installation random() {
-        // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
         Installation installation = new Installation();
-        installation.setNom("Mon Installation");
-        installation.setEquipements(Arrays.asList(new Equipement()));
-        installation.setAdresse(new Adresse());
+        Installation installationRandom = installations.findOne().as(Installation.class);
+        installation.setNom(installationRandom.getNom());
+        installation.setEquipements(installationRandom.getEquipements());
+        installation.setAdresse(installationRandom.getAdresse());
         Location location = new Location();
-        location.setCoordinates(new double[]{3.4, 3.2});
-        installation.setLocation(location);
+        location.setCoordinates(installationRandom.getLocation().getCoordinates());
+        installation.setLocation(installationRandom.getLocation());
         return installation;
     }
 }
