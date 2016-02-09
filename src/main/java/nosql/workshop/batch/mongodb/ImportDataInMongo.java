@@ -26,7 +26,8 @@ public class ImportDataInMongo {
     }
 
     private String cleanString(String s) {
-        return s.matches("\".*\"")? s.substring(1, s.length() - 1): s;
+        String value = s.matches("\".*\"") ? s.substring(1, s.length() - 1) : s;
+        return value.trim();
     }
 
     private void insertInstallations() {
@@ -73,20 +74,13 @@ public class ImportDataInMongo {
                     String type = column[7];
                     String famille = column[9];
 
-                    DBObject installation = collection.findOne(numInstall);
-                    Set<DBObject> equipements;
                     BasicDBObject equipement = new BasicDBObject("numero", numero)
                             .append("nom", nom)
                             .append("type", type)
                             .append("famille", famille);
-                    if (installation.containsField("equipements")) {
-                        equipements = new HashSet<>((List<DBObject>) installation.get("equipements"));
-                        equipements.add(equipement);
-                    } else {
-                        equipements = Sets.newHashSet(equipement);
-                    }
-                    installation.put("equipements", equipements);
-                    collection.update(new BasicDBObject("_id", numInstall), installation);
+
+                    collection.update(new BasicDBObject("_id", numInstall),
+                            new BasicDBObject("$addToSet", new BasicDBObject("equipements", equipement)));
                 });
     }
 
@@ -99,10 +93,12 @@ public class ImportDataInMongo {
                 .filter(line -> line.length() > 0)
                 .map(line -> line.split(","))
                 .forEach(column -> {
-                    //TODO update in mongo
                     String numEquip = cleanString(column[2]);
-                    DBObject installation = collection.findOne(new BasicDBObject("equipements.numero", numEquip));
-                    installation.get("equipements");
+                    String nomActivite = cleanString(column[5]);
+
+                    collection.update(new BasicDBObject("equipements.numero", numEquip),
+                            new BasicDBObject("$addToSet",
+                                    new BasicDBObject("equipements.$.activites", nomActivite)));
                 });
     }
 
