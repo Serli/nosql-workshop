@@ -6,6 +6,7 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
+import nosql.workshop.connection.ESConnectionUtil;
 
 
 import java.io.IOException;
@@ -45,13 +46,7 @@ public class MongoDbToElasticsearch {
         DBCollection col = db.getCollection("installations");
         DBCursor cursor = col.find();
 
-        String connectionUrl = "http://localhost:9200";
-        JestClientFactory factory = new JestClientFactory();
-        factory.setHttpClientConfig(new HttpClientConfig
-                .Builder(connectionUrl)
-                .multiThreaded(true)
-                .build());
-        JestClient client = factory.getObject();
+        JestClient client = ESConnectionUtil.createClient("");
 
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
