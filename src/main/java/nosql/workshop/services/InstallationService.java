@@ -91,7 +91,7 @@ public class InstallationService {
                         "{ type : \"Point\" ," +
                         "  coordinates : [ #, # ]" +
                         "}," +
-                        "$macDistance : # " +
+                        "$maxDistance : # " +
                         "}}}",
                 Double.parseDouble(context.query().get("lng")),
                 Double.parseDouble(context.query().get("lat")),
