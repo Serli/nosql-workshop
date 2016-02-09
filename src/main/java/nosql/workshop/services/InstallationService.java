@@ -5,8 +5,10 @@ import com.google.inject.Singleton;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
+import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,12 +16,12 @@ import java.util.List;
  */
 @Singleton
 public class InstallationService {
-
-    private final MongoCollection installations;
     /**
      * Nom de la collection MongoDB.
      */
     public static final String COLLECTION_NAME = "installations";
+
+    private final MongoCollection installations;
 
     @Inject
     public InstallationService(MongoDB mongoDB) throws UnknownHostException {
@@ -31,21 +33,22 @@ public class InstallationService {
     }
 
     public Installation getInstallation(String numero){
-        Installation res = new Installation();
-        res = installations.findOne("{_id: '" + numero + "'}").as(Installation.class);
-        return res;
+        return installations.findOne("{_id: '" + numero + "'}").as(Installation.class);
     }
 
     public List<Installation> searchInstallations(){
         return null;
     }
 
-    public Installation getRandomInstallation(){
-        return null;
+    public Installation getRandomInstallation() {
+        return installations.aggregate("{ $sample: { size: 1 } }").as(Installation.class).next();
     }
 
-    public List<Installation> getInstallationByGeoSearch(){
-        return null;
+    public List<Installation> getInstallationByGeoSearch(float lat, float lng, int distance){
+        List<Installation> geoList = new ArrayList<>();
+        MongoCursor<Installation> cursor = installations.find("{'location': {$near: { $geometry: { type: 'Point', coordinates: [#, #]}, $maxDistance: #}}}", lng, lat, distance).as(Installation.class);
+        cursor.forEach(e -> geoList.add(e));
+        return geoList;
     }
 
     public InstallationsStats getStats(){

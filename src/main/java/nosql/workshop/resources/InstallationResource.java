@@ -36,7 +36,6 @@ public class InstallationResource {
 
     @Get("/random")
     public Installation random() {
-
         return service.getRandomInstallation();
     }
 
@@ -48,8 +47,10 @@ public class InstallationResource {
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        //context.query().get("param")
-        return null;
+        float lat = context.query().getFloat("lat");
+        float lng = context.query().getFloat("lng");
+        int distance = context.query().getInteger("distance");
+        return service.getInstallationByGeoSearch(lat, lng, distance);
 
     }
 
