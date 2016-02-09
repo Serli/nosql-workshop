@@ -20,21 +20,19 @@ import com.mongodb.MongoClient;
 
 
 public class ImportCSV {
-	
+
 	public static void main(String[] args) {
 		MongoClient mongoClient = new MongoClient();
 		DB db = mongoClient.getDB("nosql-workshop");
 
 		DBCollection installations = db.getCollection("installations");
-		DBCollection equipements = db.getCollection("equipements");
-        DBCollection activites = db.getCollection("activites");
-        
-		importInstallation(installations, equipements);
-		importEquipement(equipements, installations);
 
-		//importEquipement(equipements, activites);
-        //importActivite(activites);
-		
+		importInstallation(installations);
+		importEquipement(installations);
+		importActivite(installations);
+
+
+
 		BasicDBObject indexObj1 = new BasicDBObject()
 				.append("nom", "text")
 				.append("adresse.commune", "text");
@@ -42,13 +40,14 @@ public class ImportCSV {
 				.append("weights", new BasicDBObject()
 						.append("nom", 3)
 						.append("adresse.commune", 10)
-				)
+						)
 				.append("adresse.default_language", "french");
 		installations.createIndex(indexObj1, indexObj2);
-		
+
+
 	}
-	
-	public static void importInstallation(DBCollection installations, DBCollection equipements) {
+
+	public static void importInstallation(DBCollection installations) {
 
 
 		String csvFile = "src/main/resources/batch/csv/installations.csv";
@@ -83,7 +82,7 @@ public class ImportCSV {
 						.append("location", new BasicDBObject()
 								.append("type", "point")
 								.append("coordinates",  Arrays.asList(Double.parseDouble(data[19]), Double.parseDouble(data[21])))
-						)
+								)
 						.append("multiCommune", "Oui".equals((data[35])))
 						.append("nbPlacesParking", data[35].isEmpty() ? null : Integer.valueOf(data[35]))
 						.append("nbPlacesParkingHandicapes", data[37].isEmpty() ? null : Integer.valueOf(data[37]))
@@ -100,7 +99,7 @@ public class ImportCSV {
 
 				installations.insert(inst);
 
-				
+
 				//installations.update(query, update)
 
 			}
@@ -118,36 +117,36 @@ public class ImportCSV {
 			}
 		}
 	}
-	
 
-	public static void importEquipement(DBCollection equipements, DBCollection installations) {
-        String csvFile = "src/main/resources/batch/csv/equipements.csv";
-        BufferedReader br = null;
-        String line = "";
-        String cvsSplitBy = ",";
 
-        try {
+	public static void importEquipement(DBCollection installations) {
+		String csvFile = "src/main/resources/batch/csv/equipements.csv";
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
 
-            br = new BufferedReader(new FileReader(csvFile));
+		try {
 
-            if ((line = br.readLine()) != null) {
-                //String[] headers = line.split(cvsSplitBy);
-            }
-            DBObject equipement = new BasicDBObject();
+			br = new BufferedReader(new FileReader(csvFile));
 
-            while ((line = br.readLine()) != null) {
+			if ((line = br.readLine()) != null) {
+				//String[] headers = line.split(cvsSplitBy);
+			}
+			DBObject equipement = new BasicDBObject();
 
-                // use comma as separator
-                String[] data = line.split(cvsSplitBy);
+			while ((line = br.readLine()) != null) {
 
-                equipement = new BasicDBObject("type", "Equipement")
-                        .append("numero", data[2]) // InsNumeroInstall
-                        .append("nom", data[5]) // EquNom
-                        .append("type", data[7]) // EquipemementTypeLib
-                        .append("famille", data[9]); // FamilleFicheLib
-                                
-                installations.update(new BasicDBObject("_id", data[2]), new BasicDBObject("$push", new BasicDBObject("equipements", equipement)));
-                /*DBCursor cursor = installations.find(new BasicDBObject().append("_id", data[2]));
+				// use comma as separator
+				String[] data = line.split(cvsSplitBy);
+
+				equipement = new BasicDBObject("type", "Equipement")
+						.append("numero", data[4]) // EquipemementID
+						.append("nom", data[5]) // EquNom
+						.append("type", data[7]) // EquipemementTypeLib
+						.append("famille", data[9]); // FamilleFicheLib
+
+				installations.update(new BasicDBObject("_id", data[2]), new BasicDBObject("$push", new BasicDBObject("equipements", equipement)));
+				/*DBCursor cursor = installations.find(new BasicDBObject().append("_id", data[2]));
 				try {
 					while(cursor.hasNext()) {
 						DBObject obj = cursor.next();
@@ -156,72 +155,80 @@ public class ImportCSV {
 				} finally {
 					cursor.close();
 				}*/
-            }
+			}
 
-            // TODO update installation with equipementID
-            
-            
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 
-    public static void importActivite(DBCollection activites) {
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
-        String csvFile = "src/main/resources/batch/csv/activites.csv";
-        BufferedReader br = null;
-        String line = "";
-        String cvsSplitBy = "\",\"";
+	public static void importActivite(DBCollection installations) {
 
-        try {
+		String csvFile = "src/main/resources/batch/csv/activites.csv";
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = "\",\"";
 
-            br = new BufferedReader(new FileReader(csvFile));
+		try {
 
-            if ((line = br.readLine()) != null) {
-                //String[] headers = line.split(cvsSplitBy);
-            }
-            DBObject activite = new BasicDBObject();
+			br = new BufferedReader(new FileReader(csvFile));
 
-            while ((line = br.readLine()) != null) {
-                line = line.substring(1, line.length() - 1);
-                String[] data = line.split(cvsSplitBy);
+			if ((line = br.readLine()) != null) {
+				//String[] headers = line.split(cvsSplitBy);
+			}
+			DBObject activite = new BasicDBObject();
 
-                activite = new BasicDBObject("type", "Activite")
-                        .append("code", getDataOrElse(data, 4, "")) //Activité code
-                        .append("nom", getDataOrElse(data, 5, "")) // Activité libellé
-                        .append("niveau", getDataOrElse(data, 9, "")); // Niveau effectivement pratiqué
-                activites.insert(activite);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ArrayIndexOutOfBoundsException e){
-            System.out.println(line);
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+			while ((line = br.readLine()) != null) {
+				line = line.substring(1, line.length() - 1);
+				String[] data = line.split(cvsSplitBy);
 
-    private static String getDataOrElse(String[] data, int index, String or){
-        return index < data.length ? data[index] : or;
-    }
+				activite = new BasicDBObject("type", "Activite")
+						.append("code", getDataOrElse(data, 4, "")) //Activité code
+						.append("nom", getDataOrElse(data, 5, "")) // Activité libellé
+						.append("niveau", getDataOrElse(data, 9, "")); // Niveau effectivement pratiqué
+
+				BasicDBObject searchQuery = new BasicDBObject(
+						"equipements",
+						new BasicDBObject(
+								"$elemMatch",
+								new BasicDBObject("numero", getDataOrElse(data, 2, ""))
+								)
+						);
+
+				BasicDBObject updateQuery = new BasicDBObject(
+						"$push",
+						new BasicDBObject("equipements.$.activites", activite)
+						);
+				installations.update(searchQuery, updateQuery);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private static String getDataOrElse(String[] data, int index, String or){
+		return index < data.length ? data[index].replace(" ", "") : or;
+	}
 
 }
