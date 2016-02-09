@@ -69,12 +69,24 @@ public class CsvToMongoDb {
 		.append("nom", columns[5])
 		.append("_id", columns[4]);
 
-		BasicDBObject pushDat = new BasicDBObject("$push",new BasicDBObject(EQUIPEMENTS,new BasicDBObject("$push",new BasicDBObject(ACTIVITES,object))));
+		/*BasicDBObject pushDat = new BasicDBObject("$push",new BasicDBObject(EQUIPEMENTS,new BasicDBObject("$push",new BasicDBObject(ACTIVITES,object))));
 
 		connection.getDatabase().getCollection(INSTALLATIONS).findAndModify(new BasicDBObject(EQUIPEMENTS,new BasicDBObject("_id",columns[2])),pushDat);
-		//connection.getCollection(EQUIPEMENTS).update("{_id:"+columns[2]+"}").with("{$push : {"+ACTIVITES+": #}}",object);
-		return object;
+		//connection.getCollection(EQUIPEMENTS).update("{_id:"+columns[2]+"}").with("{$push : {"+ACTIVITES+": #}}",object);*/
+		BasicDBObject searchQuery = new BasicDBObject(
+				EQUIPEMENTS,
+				new BasicDBObject(
+						"$elemMatch",
+						new BasicDBObject("_id", columns[2].replace(" ",""))
+						)
+				);
 
+		BasicDBObject updateQuery = new BasicDBObject(
+				"$push",
+				new BasicDBObject("equipements.$.activites", columns[5])
+		);
+		connection.getDatabase().getCollection(INSTALLATIONS).update(searchQuery, updateQuery);
+		return object;
 	}
 
 	private BasicDBObject createInstallationObject(String[] columns){

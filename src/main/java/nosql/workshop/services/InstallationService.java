@@ -7,6 +7,7 @@ import com.mongodb.DBObject;
 import net.codestory.http.Query;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.InstallationsStats;
 
 import org.elasticsearch.common.collect.Lists;
 import org.jongo.FindOne;
@@ -75,4 +76,25 @@ public class InstallationService {
     		.as(Installation.class);
     	return Lists.newArrayList(inst);
     }
+
+	public InstallationsStats stats() {
+		long equipementCount=0;
+		int max = 0;
+		String maxId="";
+		long count = installations.count();
+		Iterator<Installation> inst = installations.find().as(Installation.class);
+		List<Installation> list = Lists.newArrayList(inst);
+		for(Installation i : list){
+			int equipementSize = i.getEquipements().size();
+			equipementCount+=equipementSize;
+			if(max > equipementCount){
+				max = equipementSize;
+				maxId = i.get_id();
+			}
+		}
+		double averageEquipements = equipementCount/count;
+		Installation instWithMaxEquip = get(maxId);
+		
+		return null;
+	}
 }
