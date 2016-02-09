@@ -93,8 +93,8 @@ public class InstallationService {
                         "}," +
                         "$macDistance : # " +
                         "}}}",
-                Double.parseDouble(context.query().get("lat")),
                 Double.parseDouble(context.query().get("lng")),
+                Double.parseDouble(context.query().get("lat")),
                 Double.parseDouble(context.query().get("distance")))
                 .as(Installation.class);
 
