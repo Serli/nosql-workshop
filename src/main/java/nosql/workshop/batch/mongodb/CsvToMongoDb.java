@@ -1,8 +1,11 @@
 package nosql.workshop.batch.mongodb;
 
+import com.fasterxml.jackson.databind.introspect.TypeResolutionContext;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
@@ -66,8 +69,57 @@ public class CsvToMongoDb {
                                     .append("DateMiseAjourFiche",getColumnValue(columns[28])));
 
                     });
+
+
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        try (
+            InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/equipements.csv");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                reader.lines()
+                    .skip(1)
+                    .filter(line -> line.length() > 0)
+                    .map(line -> line.split(","))
+                    .forEach(columns -> {
+                        List<String> acti = new ArrayList<>();
+                        db.getCollection("installations").updateOne(
+                                new Document().append("_id", columns[2]),
+                                new Document().append("$addToSet",
+                                        new Document().append("equipements", new Document()
+                                                .append("numero",getColumnValue(columns[4]))
+                                                .append("nom",getColumnValue(columns[5]))
+                                                .append("type",getColumnValue(columns[6]))
+                                                .append("famille",getColumnValue(columns[8])))
+                                )
+                        );
+                    });
+                    } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+
+        try (
+                InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/activites.csv");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                 reader.lines()
+                    .skip(1)
+                    .filter(line -> line.length() > 0)
+                    .map(line -> line.split("\",\""))
+                    .forEach(columns -> {
+                        db.getCollection("installations").updateOne(
+                                new Document().append("equipements",
+                                        new Document("$elemMatch",
+                                                new Document("numero", getColumnValue(columns[2]).trim())
+                                        )
+                                ),
+                                new Document().append("$addToSet",
+                                        new Document().append("equipements.$.activites", getColumnValue(columns[5]).trim())
+                                )
+                        );
+                    });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        }
     }
-}
+
