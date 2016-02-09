@@ -7,6 +7,7 @@ import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -24,13 +25,13 @@ public class InstallationResource {
 
     @Get("/")
     @Get("")
-    public List<Installation> list(Context context) {
-        return null;
+    public List<Installation> list(Context context) throws IOException {
+        return this.installationService.list();
     }
 
     @Get("/:numero")
     public Installation get(String numero) {
-        return null;
+        return this.installationService.get(numero);
     }
 
 

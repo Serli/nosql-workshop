@@ -35,6 +35,17 @@ public class ImportCSV {
 		//importEquipement(equipements, activites);
         //importActivite(activites);
 		
+		BasicDBObject indexObj1 = new BasicDBObject()
+				.append("nom", "text")
+				.append("adresse.commune", "text");
+		BasicDBObject indexObj2 = new BasicDBObject()
+				.append("weights", new BasicDBObject()
+						.append("nom", 3)
+						.append("adresse.commune", 10)
+				)
+				.append("adresse.default_language", "french");
+		installations.createIndex(indexObj1, indexObj2);
+		
 	}
 	
 	public static void importInstallation(DBCollection installations, DBCollection equipements) {
