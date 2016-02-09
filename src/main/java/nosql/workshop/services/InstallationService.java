@@ -1,10 +1,13 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.searchbox.client.JestClient;
+import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
-import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -20,10 +23,12 @@ public class InstallationService {
     public static final String COLLECTION_NAME = "installations";
 
     private final MongoCollection installations;
+    private final JestClient elasticClient;
 
     @Inject
     public InstallationService(MongoDB mongoDB) throws UnknownHostException {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
+        this.elasticClient = ESConnectionUtil.createClient();
     }
 
     public Installation random() {
@@ -35,28 +40,29 @@ public class InstallationService {
     }
 
     public List<Installation> list() {
-        MongoCursor<Installation> cursor = installations.find().as(Installation.class);
-        List<Installation> list = new ArrayList<>();
-        cursor.forEach(installation -> list.add(installation));
-        return list;
+        return Lists.newArrayList(installations.find().as(Installation.class).iterator());
     }
 
     /**
      * Locates installations near a given location
      *
-     * @param lat latitude
-     * @param lng longitude
+     * @param lat  latitude
+     * @param lng  longitude
      * @param dist max distance from point
      * @return a list of Installations
      */
     public List<Installation> near(double lat, double lng, int dist) {
         List<Installation> list = new ArrayList<>();
         installations.ensureIndex("{ location : '2dsphere' } ");
-        final MongoCursor<Installation> cursor = installations.find(
+        return Lists.newArrayList(installations.find(
                 "{ location : { $near : { $geometry : { type : 'Point', coordinates : [ #, # ] }, $maxDistance : # } } }",
-                lng, lat, dist).as(Installation.class);
-        cursor.forEach(e -> list.add(e)); // reads the cursor into a list
-        return list;
+                lng, lat, dist).as(Installation.class).iterator());
     }
 
+    public InstallationsStats stats() {
+        InstallationsStats stats = null;
+
+        return stats;
+
+    }
 }
