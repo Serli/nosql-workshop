@@ -5,6 +5,7 @@ import com.mongodb.util.JSON;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
+import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
 
 import java.io.IOException;
@@ -32,26 +33,30 @@ public class MongoDbToElasticSearch {
         // Get installations from MongoDB
         DB db = mongoClient.getDB("nosql-workshop");
         DBCollection installations = db.getCollection("installations");
-        DBCursor cursor = installations.find(new BasicDBObject(), new BasicDBObject("dateMiseAJourFiche", "0"));
+        DBCursor cursor = installations.find(new BasicDBObject());
 
-        // Insert installations in ElasticSearch
-        DBObject installation;
-        String id;
-        Map installationMap;
-        while (cursor.hasNext()) {
+        // Creates bulk builder
+        Bulk.Builder bulkBuilder = new Bulk.Builder()
+                .defaultIndex("installations")
+                .defaultType("installation");
+        // Iterates over documents
+        cursor.forEach(installation -> {
             installation = cursor.next();
-            id = (String) installation.get("_id");
-            installationMap = installation.toMap();
+            Map installationMap = installation.toMap();
+            installationMap.remove("dateMiseAJourFiche");
             installationMap.remove("_id");
-            try {
-                elasticClient.execute(
-                        new Index.Builder(
-                                JSON.serialize(installationMap)
-                        ).index("installations").type("installation").id(id).build()
-                );
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            // Add action to add current document in ElasticSearch
+            bulkBuilder.addAction(
+                    new Index.Builder(
+                            JSON.serialize(installationMap)
+                    ).id((String) installation.get("_id")).build()
+            );
+        });
+        // Insert data into ElasticSearch
+        try {
+            elasticClient.execute(bulkBuilder.build());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
         // Close connections

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import org.bson.types.ObjectId;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
@@ -39,4 +40,9 @@ public class InstallationService {
         installation.setLocation(location);
         return installation;
     }
+
+    public Installation get(String numero) {
+        return installations.findOne(new ObjectId(numero)).as(Installation.class);
+    }
+
 }
