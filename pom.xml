@@ -96,8 +96,9 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>3.7</version>
-            <type>bundle</type>
         </dependency>
+
+
     </dependencies>
 
     <build>
