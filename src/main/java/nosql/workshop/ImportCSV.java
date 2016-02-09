@@ -5,18 +5,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import com.mongodb.*;
 import org.jongo.Jongo;
-import org.jongo.MongoCollection;
-
-import com.mongodb.DB;
-import com.mongodb.MongoClient;
 
 public class ImportCSV {
 	public static void main(String[] args) {
-		DB db = new MongoClient().getDB("dbname");
+		MongoClient mongoClient = new MongoClient();
+		DB db = mongoClient.getDB("nosql-workshop");
 
-		Jongo jongo = new Jongo(db);
-		MongoCollection installations = jongo.getCollection("installations");
+		DBCollection installations = db.getCollection("installations");
+        DBCollection equipements = db.getCollection("equipements");
 		
 		String csvFile = "activites.csv";
 		BufferedReader br = null;
@@ -35,8 +33,14 @@ public class ImportCSV {
 
 			        // use comma as separator
 				String[] data = line.split(cvsSplitBy);
-				
-				
+
+				DBObject equipement = new BasicDBObject("type", "Equipement")
+						.append("numero", data[4]) // EquipementID
+                        .append("nom", data[5]) // EquNom
+                        .append("type", data[7]) // EquipemementTypeLib
+                        .append("famille", data[9]); // FamilleFicheLib
+
+				equipements.insert(equipement);
 			}
 
 		} catch (FileNotFoundException e) {
