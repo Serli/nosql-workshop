@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.FindOne;
@@ -13,6 +14,7 @@ import org.jongo.MongoCollection;
 import net.codestory.http.Context;
 
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -47,14 +49,24 @@ public class InstallationService {
     public InstallationsStats getStats(){
         InstallationsStats stats = new InstallationsStats();
         stats.setTotalCount(installations.count(""));
-        //List<String,Integer> = installations.aggregate("{$group: { _id: null, $equipements.activites, count: { $sum: 1 }}}");
-        //stats.setCountByActivity(installations.aggregate("{$group: { _id: null, $equipements.activites, count: { $sum: 1 }}}"));
-        //for ()
+        stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$unwind: \"$equipements.activites\"}")
+                .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
+                .and("{$project: {activite: \"$_id\", total : 1}}")
+                .as(CountByActivity.class).iterator()));
+        stats.setAverageEquipmentsPerInstallation(installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$group: {_id: \"$nom\", sum:{$sum : 1}}}")
+                .and("{$group: {_id: 0, average:{$avg : \"$sum\"}}}")
+                .as(Average.class).next().getAverage());
+       // stats.setAverageEquipmentsPerInstallation(installations.aggregate(" [{$unwind : \"$equipements\"},{ $group : { _id : \"$_id\", len : { $sum : 1 } } },{ $sort : { len : -1 } },{ $limit :1 } ]")
+       //         .as(Installation));
         return stats;
     }
 
     public  List<Installation> geoSearch(Double latitude, Double longitude, Integer dist) {
-        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : "+"Point"+", coordinates : [ "+latitude+", "+longitude+" ]}, $maxDistance : "+dist+"}}}").as(Installation.class).iterator());
+        installations.ensureIndex("{ location : '2dsphere' } " );
+        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ "+latitude+", "+longitude+" ]}, $maxDistance : "+dist+"}}}").as(Installation.class).iterator());
+
     }
 
 }

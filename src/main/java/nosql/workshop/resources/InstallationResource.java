@@ -41,7 +41,7 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        System.out.println(context.query().getBoolean(""));
+        System.out.println(context.query().get("query"));
         return null;
 
     }
