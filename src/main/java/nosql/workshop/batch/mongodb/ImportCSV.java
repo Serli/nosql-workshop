@@ -74,7 +74,13 @@ public class ImportCSV {
                                 .append("multiCommune", "Oui".equals(column[16]))
                                 .append("nbPlacesParking",  column[17].isEmpty() ? null : Integer.valueOf(column[17]))
                                 .append("nbPlacesParkingHandicapes", column[18].isEmpty() ? null : Integer.valueOf(column[18]))
-                                .append("dateMiseAJourFiche", column[28] );
+                                .append("dateMiseAJourFiche",
+                                        column[28] == null || column[28].isEmpty() || column[28].length() <= 9
+                                                ? null :
+                                                Date.from(
+                                                        LocalDate.parse(column[28].substring(0, 10))
+                                                                .atStartOfDay(ZoneId.of("UTC"))
+                                                                .toInstant()));
 
                         coll.insertOne(doc);
                     });

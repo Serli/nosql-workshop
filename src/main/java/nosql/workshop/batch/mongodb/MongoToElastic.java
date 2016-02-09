@@ -1,7 +1,6 @@
 package nosql.workshop.batch.mongodb;
 
-import com.mongodb.DBCursor;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -10,50 +9,91 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
+import nosql.workshop.connection.ESConnectionUtil;
 import org.bson.Document;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 /**
  * Created by romanlp on 09/02/16.
  */
 public class MongoToElastic {
 
+    String townCsv = "./src/main/resources/batch/csv/towns_paysdeloire.csv";
+
     private String connectionUrl = "http://localhost:9200";
+
 
     MongoCollection<Document> coll;
 
     public static void main(String[] args) {
 
         MongoToElastic obj = new MongoToElastic();
-        obj.run();
+        //obj.run();
+        obj.importCity();
 
+    }
+
+    private void importCity() {
+
+        BufferedReader br = null;
+        String cvsSplitBy = "\",\"";
+
+        MongoClient mongoClient = new MongoClient();
+        DB db = mongoClient.getDB("nosql-workshop");
+        DBCollection collection = db.getCollection("installations");
+        DBCursor cursor = collection.find();
+
+        try {
+
+            br = new BufferedReader(new FileReader(townCsv));
+
+            br.lines()
+                    .skip(1)
+                    .filter(line -> line.length() > 0)
+                    .map(line -> line.split(cvsSplitBy))
+                    .forEach(column -> {
+
+                    });
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println("Done");
     }
 
     public void run(){
 
         MongoClient mongoClient = new MongoClient();
+        DB db = mongoClient.getDB("nosql-workshop");
+        DBCollection collection = db.getCollection("installations");
+        DBCursor cursor = collection.find();
 
-        MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
-        this.coll = db.getCollection("installations");
-        FindIterable<Document> cursor = coll.find();
-        JestClientFactory factory = new JestClientFactory();
-        factory.setHttpClientConfig(new HttpClientConfig
-                .Builder(connectionUrl)
-                .multiThreaded(true)
-                .build());
+        JestClient client = ESConnectionUtil.createClient("");
 
-        JestClient client = factory.getObject();
-
-        Map<String, Object> source = new HashMap<>();
-        source.put("installation", this.getInstallations(cursor));
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
                 .defaultType("installation")
-                .addAction(new Index.Builder(source).build())
+                .addAction(getListBulkable(cursor))
                 .build();
+
         try {
             client.execute(bulk);
         } catch (IOException e) {
@@ -61,9 +101,23 @@ public class MongoToElastic {
         }
     }
 
-    private Object getInstallations(FindIterable<Document> cursor) {
-        return null;
+    public static Collection<Index> getListBulkable(DBCursor cursor){
+        ArrayList<Index> list = new ArrayList<>();
+        while(cursor.hasNext()){
+            list.add(createIndex(cursor.next()));
+        }
+        return list;
     }
+
+    private static Index createIndex(DBObject object){
+        String id = object.get("_id").toString();
+        object.removeField("_id");
+        object.removeField("dateMiseAJourFiche");
+        return new Index.Builder(object).id(id).build();
+    }
+
+
+
 
 
 }
