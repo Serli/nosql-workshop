@@ -29,7 +29,7 @@ public class InstallationService {
     }
 
     public List<Installation> getAllInstallations(){
-        List<Installation> myList = new ArrayList<Installation>();
+        List<Installation> myList = new ArrayList<>();
         MongoCursor<Installation> all = installations.find().as(Installation.class);
         while(all.hasNext()) {
             myList.add(all.next());
@@ -41,8 +41,16 @@ public class InstallationService {
         return installations.findOne("{_id: '" + numero + "'}").as(Installation.class);
     }
 
-    public List<Installation> searchInstallations(){
-        return null;
+    public List<Installation> searchInstallations(String query){
+        installations.ensureIndex("{ 'nom' : 'text', 'adresse.commune' : 'text'}", "{'weights' : {'nom' : 3, 'adresse.commune' : 10}, 'default_language' : 'french'}");
+        List<Installation> searchList =  new ArrayList<>();
+        MongoCursor<Installation> cursor = installations.find("{$text: { $search: #, $language: 'french'}}", query)
+                .projection("{'score': {$meta: 'textScore'}}")
+                .sort("{'score': {$meta: 'textScore'}}")
+                .limit(10)
+                .as(Installation.class);
+        cursor.forEach(searchList::add);
+        return searchList;
     }
 
     public Installation getRandomInstallation() {
@@ -53,7 +61,7 @@ public class InstallationService {
         List<Installation> geoList = new ArrayList<>();
         installations.ensureIndex("{ 'location' : '2dsphere' }");
         MongoCursor<Installation> cursor = installations.find("{'location': {$near: { $geometry: { type: 'Point', coordinates: [#, #]}, $maxDistance: #}}}", lng, lat, distance).as(Installation.class);
-        cursor.forEach(e -> geoList.add(e));
+        cursor.forEach(geoList::add);
         return geoList;
     }
 

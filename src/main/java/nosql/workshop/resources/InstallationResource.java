@@ -41,7 +41,8 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
+        String query = context.query().get("query");
+        return service.searchInstallations(query);
 
     }
 
@@ -57,6 +58,5 @@ public class InstallationResource {
     @Get("/stats")
     public InstallationsStats stats() {
         return service.getStats();
-
     }
 }
