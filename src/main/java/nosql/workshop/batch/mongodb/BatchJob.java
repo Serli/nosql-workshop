@@ -101,8 +101,10 @@ public class BatchJob {
                         .collect(Collectors.toList())
                         .forEach(r -> {
                             UpdateResult ur =  collection.updateOne(
-                                    new Document().append("equipements", new Document("$elemMatch", new Document("numero", r.get(2)))),
-                                    new Document().append("$addToSet", new Document().append("equipements.$.activites", r.get(5))));
+                                    new Document().append("equipements", new Document("$elemMatch", new Document("numero", r.get(2).trim()))),
+                                    new Document().append("$addToSet", new Document().append("equipements.$.activites", r.get(5).trim())));
+
+                            System.out.println("mc="+ur.getMatchedCount()+", mod="+ur.getModifiedCount());
                         });
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
