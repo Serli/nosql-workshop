@@ -30,7 +30,7 @@ public class InstallationResource {
 
     @Get("/:numero")
     public Installation get(String numero) {
-        return null;
+        return installationService.byId(numero);
     }
 
 

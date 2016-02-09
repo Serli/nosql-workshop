@@ -48,7 +48,7 @@ public class CsvToMongoDb {
                         			)
                         	.append("location",
                         			new BasicDBObject("type","Point")
-                        			.append("coodinates",Arrays.asList(Double.valueOf(columns[9]),Double.valueOf(columns[10])))
+                        			.append("coordinates",Arrays.asList(Double.valueOf(columns[9]),Double.valueOf(columns[10])))
                         			)
                         	.append("multiCommune", "Oui".equals(columns[16]))
                         	.append("nbPlacesParking", columns[17].isEmpty()?null:Integer.valueOf(columns[17]))
@@ -57,9 +57,7 @@ public class CsvToMongoDb {
                         			columns.length<29 || columns[28].equals("\"")?null:Date.from(LocalDate.parse(columns[28].substring(0, 10))
                         																				.atStartOfDay(ZoneId.of("UTC"))
                         																				.toInstant()
-                        																	  ))
-                        	.append("elements",Arrays.asList())																  
-                        ;
+                        																	  ));
                     	coll.insert(doc);
                         //System.out.println("Une ligne");
                         //System.out.println(columns[0].matches("\".*\"")?columns[0].substring(1,columns[0].length()-1):columns[0]);
