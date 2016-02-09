@@ -4,18 +4,20 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
+
+import com.mongodb.client.MongoDatabase;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import org.bson.Document;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
+import org.jongo.Oid;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -39,8 +41,8 @@ public class InstallationService {
         Installation installation = new Installation();
         installation.setNom("Mon Installation");
         installation.setEquipements(Arrays.asList(new Equipement()));
-        installation.setAdresse(new Adresse());
-        Location location = new Location();
+        installation.setAdresse(new Installation.Adresse());
+        Installation.Location location = new Installation.Location();
         location.setCoordinates(new double[]{3.4, 3.2});
         installation.setLocation(location);
         return installation;
@@ -50,7 +52,6 @@ public class InstallationService {
         MongoClient mongoClient = new MongoClient();
         DB db = mongoClient.getDB("nosql-workshop");
         //MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
-
         Jongo jongo = new Jongo(db);
         MongoCollection installations = jongo.getCollection("installations");
         MongoCursor<Installation> all = installations.find().as(Installation.class);
@@ -60,4 +61,10 @@ public class InstallationService {
         }
         return result;
     }
+    public Installation getId(String id){
+        DB db = new MongoClient().getDB("nosql-workshop");
+        Jongo jongo = new Jongo(db);
+        return jongo.getCollection("installations").findOne(Oid.withOid(id)).as(Installation.class);
+    }
+
 }

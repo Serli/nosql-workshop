@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 public class ParserCSV2Mongo {
@@ -45,12 +48,17 @@ public class ParserCSV2Mongo {
                                                         .append("type", "Point")
                                                         .append("coordinates",
                                                                 Arrays.asList(
-                                                                        columns[9].matches("\".*\"") ? columns[9].substring(1, columns[9].length() - 1) : columns[9],
-                                                                        columns[10].matches("\".*\"") ? columns[10].substring(1, columns[10].length() - 1) : columns[10])))
-                                        .append("multiCommune", columns[16].matches("\".*\"") ? columns[16].substring(1, columns[16].length() - 1) : columns[16])
-                                        .append("nbrPlacesParking", columns[17].matches("\".*\"") ? columns[17].substring(1, columns[17].length() - 1) : columns[17])
-                                        .append("nbrPlacesParkingHandicapes", columns[18].matches("\".*\"") ? columns[18].substring(1, columns[18].length() - 1) : columns[18])
-                                        .append("dateMiseAJourFiche", columns[lastColumn].matches(".*\"") ? columns[lastColumn].substring(0, columns[lastColumn].length() - 1) : columns[lastColumn])
+                                                                        Float.valueOf(columns[9].matches("\".*\"") ? columns[9].substring(1, columns[9].length() - 1) : columns[9]),
+                                                                        Float.valueOf(columns[10].matches("\".*\"") ? columns[10].substring(1, columns[10].length() - 1) : columns[10]))))
+                                        .append("multiCommune", "Oui".equals(columns[16].matches("\".*\"") ? columns[16].substring(1, columns[16].length() - 1) : columns[16]))
+                                        .append("nbrPlacesParking", columns[17].matches("\".*\"") ? columns[17].substring(1, columns[17].length() - 1) : columns[17].isEmpty() ? null : Integer.valueOf(columns[17].matches("\".*\"") ? columns[17].substring(1, columns[17].length() - 1) : columns[17]))
+                                        .append("nbrPlacesParkingHandicapes", columns[17].matches("\".*\"") ? columns[18].substring(1, columns[18].length() - 1) : columns[18].isEmpty() ? null : Integer.valueOf(columns[18].matches("\".*\"") ? columns[18].substring(1, columns[18].length() - 1) : columns[18]))
+                                        .append("dateMiseAJourFiche", columns[28] == null || columns[28].isEmpty() || columns[28].length() <= 9
+                                                ? null :
+                                                Date.from(
+                                                        LocalDate.parse(columns[28].substring(0, 10))
+                                                                .atStartOfDay(ZoneId.of("UTC"))
+                                                                .toInstant()))
                         );
                     });
         } catch (IOException e) {
