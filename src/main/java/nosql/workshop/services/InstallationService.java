@@ -67,3 +67,8 @@ public class InstallationService {
         return listInstallation;
     }
 }
+
+    public Double[] getLocation(String townName) {
+        return null;
+    }
+}
