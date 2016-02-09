@@ -150,8 +150,7 @@ public class CsvToMongoDb {
 	}
 
 	public void createIndex(){
-		//connection.getDatabase().getCollection(INSTALLATIONS).createIndex(new BasicDBObject("nom",1).append("adresse.commune",1));
-		connection.getCollection(INSTALLATIONS).ensureIndex(String.join("", 
+		connection.getCollection(INSTALLATIONS).ensureIndex(String.join("",
 				"{",
 					"*nom*:*text*,",
 					"*adresse.commune*:*text*",
@@ -164,18 +163,11 @@ public class CsvToMongoDb {
 						"*default_language*:*french*",
 				"}"
 				).replace('*', '"'));
-				/*"{"
-						+"\"nom\" : \"text\","
-						+"\"adresse.commune\" : \"text\""
-				+"},"
-				+"{"
-						+"\"weights\" : {"
-						+"\"nom\" : 3,"
-						+"\"adresse.commune\" : 10"
-				+"},"
-				+"\"default_language\" : \"french\""
-				+"}";
-				);*/
+
+
+		connection.getCollection(INSTALLATIONS).ensureIndex(String.join("",
+				"{ *coordinates* : *geoHaystack* , *type* : 1 } , " ,
+				"{ *bucketSize* : 1 }").replace('*','"'));
 	}
 
     public void fillDB(){
