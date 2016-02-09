@@ -41,7 +41,7 @@ public class ImportCSV {
 						)
 				.append("adresse.default_language", "french");
 		installations.createIndex(indexObj1, indexObj2);
-
+		installations.createIndex(new BasicDBObject("location", "2dsphere"));
 
 	}
 
@@ -78,7 +78,7 @@ public class ImportCSV {
 								.append("commune", data[5])
 								)
 						.append("location", new BasicDBObject()
-								.append("type", "point")
+								.append("type", "Point")
 								.append("coordinates",  Arrays.asList(Double.parseDouble(data[19]), Double.parseDouble(data[21])))
 								)
 						.append("multiCommune", "Oui".equals((data[35])))
@@ -194,7 +194,7 @@ public class ImportCSV {
 						"equipements",
 						new BasicDBObject(
 								"$elemMatch",
-								new BasicDBObject("numero", getDataOrElse(data, 2, ""))
+								new BasicDBObject("numero", getDataOrElse(data, 2, "").replace(" ", ""))
 								)
 						);
 
@@ -220,7 +220,7 @@ public class ImportCSV {
 	}
 
 	private static String getDataOrElse(String[] data, int index, String or){
-		return index < data.length ? data[index].replace(" ", "") : or;
+		return index < data.length ? data[index] : or;
 	}
 
 }
