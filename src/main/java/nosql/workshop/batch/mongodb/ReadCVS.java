@@ -20,7 +20,7 @@ public class ReadCVS {
         String csvFile = path;
         BufferedReader br = null;
         String line = "";
-        String cvsSplitBy = "\",\"";
+        String cvsSplitBy = ",";
         List<Map<String, String>> result = new ArrayList<>();
         List<String> head = new ArrayList<>();
 
@@ -34,16 +34,25 @@ public class ReadCVS {
 
                 if (firstLine){
                     head = Arrays.asList(line.split(cvsSplitBy));
+                    System.out.println(head.toString());
+                    System.out.println("taille "+head.size());
                     firstLine = false;
                 } else {
 
-                    List<String> myLine = Arrays.asList(line.split(cvsSplitBy));
+                    List<String> myLine = null;
+                    if(line.contains("\"[")){
+                        myLine = Arrays.asList(line.split("\""+cvsSplitBy+"\""));
+                    } else {
+                        myLine = Arrays.asList(line.split(cvsSplitBy));
+                    }
                     Map<String, String> map = new HashMap<>();
+
+                    System.out.println("i " + myLine.size());
 
                     // use comma as separator
                     for (String e : myLine){
                         int index = myLine.indexOf(e);
-                        map.put(head.get(index).replace("\"", ""), e.replace("\"", ""));
+                       map.put(head.get(index).replace("\"", ""), e.replace("\"", ""));
                     }
                     result.add(map);
                 }
