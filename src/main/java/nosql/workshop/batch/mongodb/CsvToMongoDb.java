@@ -56,8 +56,9 @@ public class CsvToMongoDb {
 		.append("nom", columns[5])
 		.append("type", columns[7])
 		.append("famille", columns[9]);
-
-		connection.getCollection(INSTALLATIONS).update("{_id:"+columns[2]+"}").with("{$push : {"+EQUIPEMENTS+": #}}",object);
+		BasicDBObject obj2 = new BasicDBObject(EQUIPEMENTS,object);
+		connection.getDatabase().getCollection(INSTALLATIONS).update(new BasicDBObject("_id",columns[2]),obj2);
+	//	connection.getCollection(INSTALLATIONS).update("{_id:" + columns[2] + "}").with("{$push : {"+EQUIPEMENTS+": #}}",object);
 		return object;
 	}
 
@@ -152,17 +153,17 @@ public class CsvToMongoDb {
 	public void createIndex(){
 		connection.getCollection(INSTALLATIONS).ensureIndex(String.join("",
 				"{",
-					"*nom*:*text*,",
-					"*adresse.commune*:*text*",
+				"*nom*:*text*,",
+				"*adresse.commune*:*text*",
 				"},",
 				"{",
-					"*weights*:{",
-						"*nom*:3,",
-						"*adresse.commune*:10",
-						"},",
-						"*default_language*:*french*",
+				"*weights*:{",
+				"*nom*:3,",
+				"*adresse.commune*:10",
+				"},",
+				"*default_language*:*french*",
 				"}"
-				).replace('*', '"'));
+		).replace('*', '"'));
 
 
 		connection.getCollection(INSTALLATIONS).ensureIndex("{*location*:*2dsphere*}".replace('*', '"'));
