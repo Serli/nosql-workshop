@@ -8,6 +8,7 @@ import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,7 +44,13 @@ public class InstallationService {
         return new InstallationsStats();
     }
 
-    public Double[] getLocation(String townName) {
-        return new Double[]{3.4, 3.2};
+    public List<Installation> geosearch(Double lat, Double lng, Integer distance) {
+        installations.ensureIndex( "{ \"location\" : \"2dsphere\" }");
+        return Lists.newArrayList(
+                installations
+                .find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + lat + ", " + lng + " ]}, $maxDistance : " + distance + "}}}")
+                .as(Installation.class).iterator()
+        );
     }
+
 }

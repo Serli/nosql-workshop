@@ -55,7 +55,7 @@ public class InstallationResource {
         Double lat = query.getDouble("lat");
         Double lng = query.getDouble("lng");
         Integer distance = query.getInteger("distance");
-        return searchService.geosearch(lat, lng, distance);
+        return installationService.geosearch(lat, lng, distance);
     }
 
     @Get("/stats")
