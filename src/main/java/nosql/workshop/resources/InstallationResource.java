@@ -51,8 +51,11 @@ public class InstallationResource {
     }
 
     @Get("/geosearch")
-    public List<Installation> geosearch(Context context) {
-        return null;
+    public List<Installation> geoSearch(Context context) {
+        final Double lat = context.query().getDouble("lat");
+        final Double lng = context.query().getDouble("lng");
+        final Integer dist = context.query().getInteger("distance");
+        return installationService.near(lat, lng, dist);
     }
 
     @Get("/stats")

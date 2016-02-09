@@ -2,20 +2,13 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.searchbox.client.JestClient;
-import nosql.workshop.connection.ESConnectionUtil;
-import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
-import org.bson.types.ObjectId;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -38,13 +31,31 @@ public class InstallationService {
     }
 
     public Installation get(String numero) {
-        return installations.findOne(String.format("{ _id : '%s' }", numero)).as(Installation.class);
+        return installations.findOne("{ _id : # }", numero).as(Installation.class);
     }
 
     public List<Installation> list() {
         MongoCursor<Installation> cursor = installations.find().as(Installation.class);
         List<Installation> list = new ArrayList<>();
         cursor.forEach(installation -> list.add(installation));
+        return list;
+    }
+
+    /**
+     * Locates installations near a given location
+     *
+     * @param lat latitude
+     * @param lng longitude
+     * @param dist max distance from point
+     * @return a list of Installations
+     */
+    public List<Installation> near(double lat, double lng, int dist) {
+        List<Installation> list = new ArrayList<>();
+        installations.ensureIndex("{ location : '2dsphere' } ");
+        final MongoCursor<Installation> cursor = installations.find(
+                "{ location : { $near : { $geometry : { type : 'Point', coordinates : [ #, # ] }, $maxDistance : # } } }",
+                lng, lat, dist).as(Installation.class);
+        cursor.forEach(e -> list.add(e)); // reads the cursor into a list
         return list;
     }
 

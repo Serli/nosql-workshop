@@ -105,7 +105,7 @@ public class CsvToMongoDb {
                                 .append("codePostal", cleanString(line[4]))
                                 .append("commune", cleanString(line[2]))
                 ).append("location",
-                new Document().append("type", "point")
+                new Document().append("type", "Point")
                         .append("coordinates", asList(Double.parseDouble(cleanString(line[9])), Double.parseDouble(cleanString(line[10]))))
         ).append("multiCommune", "Oui".equals(cleanString(line[16])))
                 .append("nbPlacesParking", getIntValue(line[17]))
