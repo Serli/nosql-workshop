@@ -3,6 +3,7 @@ package nosql.workshop.batch.mongodb;
 import com.mongodb.*;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,7 @@ public class ImportDataInMongo {
         br.lines()
             .skip(1)
             .filter(line -> line.length() > 0)
-            .map(line -> line.split(","))
+            .map(line -> line.split("\",\""))
             .forEach(column -> {
                 //TODO insert in mongo
                 DBObject installation = new BasicDBObject("type", "Installation")
@@ -45,7 +46,8 @@ public class ImportDataInMongo {
                                 .append("codePostal", cleanString(column[4]))
                                 .append("commune", cleanString(column[2])))
                         .append("location", new BasicDBObject("type", "Point")
-                                .append("coordinates", cleanString(column[8])))
+                                .append("coordinates",
+                                        Arrays.asList(Double.valueOf(cleanString(column[10])), Double.valueOf(cleanString(column[9])))))
                         .append("multiCommune", cleanString(column[16]))
                         .append("nbPlacesParking", cleanString(column[17]))
                         .append("nbPlacesParkingHandicapes", cleanString(column[18]))
