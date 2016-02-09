@@ -3,6 +3,8 @@ package nosql.workshop.batch.mongodb;
 import com.mongodb.*;
 
 import java.io.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Marion Bechennec
@@ -10,26 +12,17 @@ import java.io.*;
 public class ImportDataInMongo {
 
     private static final String DB_NAME = "nosql-workshop";
+    private static final String COLLECTION_NAME = "installations";
+    private final DBCollection collection;
 
-    public static void main(String[] args) {
-        //insert installations
-        ImportDataInMongo importer = new ImportDataInMongo();
-
-        MongoClient mongoClient = new MongoClient();
-        DB db = mongoClient.getDB(DB_NAME);
-
-        importer.insertInstallations(db);
-        //update installations with equipement
-        importer.updateEquipements();
-        //update equipement in insertInstallations with activites
-        importer.updateActivites();
-
+    public ImportDataInMongo() {
+        MongoClient client = new MongoClient();
+        DB db = client.getDB(DB_NAME);
+        collection = db.getCollection(COLLECTION_NAME);
     }
 
-    private void insertInstallations(DB db) {
-        DBCollection col = db.getCollection("installations");
-
-        InputStream is = getClass().getResourceAsStream("installations.csv");
+    private void insertInstallations() {
+        InputStream is = getClass().getResourceAsStream("../csv/installations.csv");
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
         br.lines()
@@ -53,14 +46,62 @@ public class ImportDataInMongo {
                         .append("nbPlacesParking", column[17])
                         .append("nbPlacesParkingHandicapes", column[18])
                         .append("dateMiseAJourFiche", column[28]);
-                col.insert(installation);
+                collection.insert(installation);
             });
     }
 
     private void updateEquipements() {
+        InputStream is = getClass().getResourceAsStream("../csv/equipements.csv");
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+        br.lines()
+                .skip(1)
+                .filter(line -> line.length() > 0)
+                .map(line -> line.split(","))
+                .forEach(column -> {
+                    //TODO update in mongo
+                    String numInstall = column[2];
+                    String numero = column[4];
+                    String nom = column[5];
+                    String type = column[7];
+                    String famille = column[9];
+
+                    DBObject installation = collection.findOne(numInstall);
+                    List<DBObject> equipements = (List<DBObject>) installation.get("equipements");
+                    equipements.add(new BasicDBObject("numero", numero)
+                            .append("nom", nom)
+                            .append("type", type)
+                            .append("famille", famille));
+
+
+                    collection.update(new BasicDBObject("_id", numInstall),
+                            new BasicDBObject("equipements", equipements));
+                });
     }
 
     private void updateActivites() {
+        InputStream is = getClass().getResourceAsStream("../csv/activites.csv");
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+        br.lines()
+                .skip(1)
+                .filter(line -> line.length() > 0)
+                .map(line -> line.split(","))
+                .forEach(column -> {
+                    //TODO update in mongo
+                });
+    }
+
+    public static void main(String[] args) {
+        //insert installations
+        ImportDataInMongo importer = new ImportDataInMongo();
+
+        importer.insertInstallations();
+        //update installations with equipement
+        importer.updateEquipements();
+        //update equipement in insertInstallations with activites
+        importer.updateActivites();
+
     }
 
 }
