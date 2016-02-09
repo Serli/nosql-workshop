@@ -104,4 +104,10 @@ public class InstallationService {
         stats.setCountByActivity(countByActivityList);
         return stats;
     }
+
+    public List<Installation> getGeoSearchResults(String lat, String lng, String distance) {
+        List<Installation> results = new ArrayList<>();
+        installations.find(String.format("{location:{$near:{$geometry:{type:'Point', coordinates: [%s, %s]}, $maxDistance: %s}}}", String.valueOf(lat), String.valueOf(lng), String.valueOf(distance))).as(Installation.class).forEach(results::add);
+        return results;
+    }
 }
