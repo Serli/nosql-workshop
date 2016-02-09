@@ -37,8 +37,9 @@ public class MongoDbToElasticSearch {
             System.out.println(ex.toString());
         }
 
-        // Close MongoDB connection
+        // Close connections
         mongoClient.close();
+        elasticClient.shutdownClient();
 
     }
 
