@@ -48,6 +48,7 @@ public class InstallationResource {
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
+        //context.query().get("param")
         return null;
 
     }

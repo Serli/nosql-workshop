@@ -1,14 +1,12 @@
 package nosql.workshop.services;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
-import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
@@ -17,15 +15,15 @@ import java.util.List;
 @Singleton
 public class InstallationService {
 
-    private static final String DB_NAME = "nosql-workshop";
-    private static final String COLLECTION_NAME = "installations";
-    private final MongoCollection collection;
+    private final MongoCollection installations;
+    /**
+     * Nom de la collection MongoDB.
+     */
+    public static final String COLLECTION_NAME = "installations";
 
-    public InstallationService(){
-        MongoClient client = new MongoClient();
-        DB db = client.getDB(DB_NAME);
-        Jongo jongo = new Jongo(db);
-        collection = jongo.getCollection(COLLECTION_NAME);
+    @Inject
+    public InstallationService(MongoDB mongoDB) throws UnknownHostException {
+        this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
     }
 
     public List<Installation> getAllInstallations(){
@@ -34,7 +32,7 @@ public class InstallationService {
 
     public Installation getInstallation(String numero){
         Installation res = new Installation();
-        res = collection.findOne("{_id: '" + numero + "'}").as(Installation.class);
+        res = installations.findOne("{_id: '" + numero + "'}").as(Installation.class);
         return res;
     }
 
