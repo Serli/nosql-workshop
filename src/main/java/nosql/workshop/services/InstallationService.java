@@ -1,5 +1,6 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.BasicDBObject;
@@ -34,39 +35,16 @@ public class InstallationService {
     }
 
     public Installation random() {
-        Installation installation = new Installation();
-        Installation installationRandom = installations.findOne().as(Installation.class);
-        installation.setNom(installationRandom.getNom());
-        installation.setEquipements(installationRandom.getEquipements());
-        installation.setAdresse(installationRandom.getAdresse());
-        Location location = new Location();
-        location.setCoordinates(installationRandom.getLocation().getCoordinates());
-        installation.setLocation(installationRandom.getLocation());
-        return installation;
+        return installations.findOne().as(Installation.class);
     }
 
     public Installation get(String numero) {
-        Installation installation = new Installation();
-        Installation installationId = installations.findOne("{_id : '" + numero + "'}").as(Installation.class);
-        installation.setNom(installationId.getNom());
-        installation.setEquipements(installationId.getEquipements());
-        installation.setAdresse(installationId.getAdresse());
-        Location location = new Location();
-        location.setCoordinates(installationId.getLocation().getCoordinates());
-        installation.setLocation(installationId.getLocation());
-        installation.set_id(numero);
-        installation.setDateMiseAJourFiche(installationId.getDateMiseAJourFiche());
-        installation.setMultiCommune(installationId.isMultiCommune());
-        installation.setNbPlacesParking(installationId.getNbPlacesParking());
-        installation.setNbPlacesParkingHandicapes(installation.getNbPlacesParkingHandicapes());
-        return installation;
+        return installations.findOne("{_id : '" + numero + "'}").as(Installation.class);
     }
 
     public List<Installation> list() {
-        List<Installation> listInstallation = new ArrayList<Installation>();
-        return listInstallation;
+        return Lists.newArrayList(installations.find("").as(Installation.class).iterator());
     }
-}
 
     public Double[] getLocation(String townName) {
         return null;
