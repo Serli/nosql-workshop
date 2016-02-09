@@ -6,12 +6,9 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.elasticsearch.common.joda.time.format.ISODateTimeFormat;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.Scanner;
 
 import static java.util.Arrays.asList;
 
@@ -24,50 +21,66 @@ public class CsvToMongoDb {
         MongoClient mongoClient = new MongoClient();
 
         MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
+        final MongoCollection<Document> dbCollection = db.getCollection("installations");
 
+        try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/installations.csv");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
-        try {
-            Scanner scanner = new Scanner(new File(String.valueOf(CsvToMongoDb.class.getResource("/batch/csv/installations.csv"))));
+            Document doc = new Document();
             List<Document> installations = new ArrayList<>();
+            reader.lines()
+                    .skip(1)
+                    .filter(line -> line.length() > 0)
+                    .limit(10)
+                    .map(line -> line.split("\",\""))
+                    .forEach(columns -> {
+                            handleLineInstallation(columns, doc);
+                            dbCollection.insertOne(doc);
+                            doc.clear();
+                        }
+                    );
 
-            String[] fields;
-            Document document = new Document();
-            scanner.skip("^$");
-            scanner.nextLine();
-            while (scanner.hasNextLine()) {
-                // Get line
-                fields = scanner.nextLine().split(",");
-
-                // Clear the document - more efficient than creating a new instance
-                document.clear();
-                // We consider the csv file coherent at all times
-                document.append("_id", fields[1])
-                    .append("nom", fields[0])
-                    .append("adresse",
-                        new Document().append("numero", fields[6])
-                            .append("voie", fields[7])
-                            .append("lieuDit", fields[5])
-                            .append("codePostal", fields[4])
-                            .append("commune", fields[2])
-                    ).append("location",
-                        new Document().append("type", "point")
-                            .append("coordinates", asList(Double.parseDouble(fields[9]), Double.parseDouble(fields[10])))
-                    ).append("multiCommune", Boolean.parseBoolean(fields[16]))
-                    .append("nbPlacesParking", Integer.parseInt(fields[17]))
-                    .append("nbPlacesParkingHandicapes", Integer.parseInt(fields[18]))
-                    .append("dateMiseAJourFiche", ISODateTimeFormat.dateParser().parseDateTime(fields[28]))
-                    ;
-                installations.add(document);
-            }
-
-            // Bulk insert the installations
-            final MongoCollection<Document> dbCollection = db.getCollection("installations");
-            dbCollection.insertMany(installations);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
+    }
+
+    /**
+     * Handle a line "installation" and returns a mongo-ready bson document
+     * @param line the line to parse
+     * @param document the document to fill - we pass it in for performance issues
+     */
+    private static void handleLineInstallation(String[] line, Document document) {
+
+        // Clear the document - more efficient than creating a new instance
+        //document = new Document();
+        document.clear();
+        // We consider the csv file coherent at all times
+        document.append("_id", cleanString(line[1]))
+                .append("nom", cleanString(line[0]))
+                .append("adresse",
+                        new Document().append("numero", cleanString(line[6]))
+                                .append("voie", cleanString(line[7]))
+                                .append("lieuDit", cleanString(line[5]))
+                                .append("codePostal", cleanString(line[4]))
+                                .append("commune", cleanString(line[2]))
+                ).append("location",
+                new Document().append("type", "point")
+                        .append("coordinates", asList(Double.parseDouble(cleanString(line[9])), Double.parseDouble(cleanString(line[10]))))
+        ).append("multiCommune", "Oui".equals(cleanString(line[16])))
+                .append("nbPlacesParking", Integer.parseInt(cleanString(line[17])))
+                .append("nbPlacesParkingHandicapes", Integer.parseInt(cleanString(line[18])))
+        ;
+    }
+
+    /**
+     * Removes double quotes from a String.
+     * @param toClean the string ot clean
+     * @return the cleaned string
+     */
+    private static String cleanString(String toClean) {
+        return toClean.matches("\".*\"") ? toClean.substring(1, toClean.length() - 1) : toClean;
     }
 
 }
