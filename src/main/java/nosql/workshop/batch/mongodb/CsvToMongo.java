@@ -3,9 +3,15 @@ package nosql.workshop.batch.mongodb;
 import com.mongodb.*;
 import com.opencsv.CSVReader;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
