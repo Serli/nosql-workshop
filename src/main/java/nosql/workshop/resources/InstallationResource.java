@@ -47,7 +47,7 @@ public class InstallationResource {
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        return null;
+        return this.installationService.geosearch(context);
 
     }
 

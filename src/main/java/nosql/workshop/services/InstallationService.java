@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 
+import com.mongodb.BasicDBObject;
 import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
@@ -99,4 +100,48 @@ public class InstallationService {
 		}
         return list;
     }
+
+	public List<Installation> geosearch(Context context) {
+
+        List<Installation> list = new ArrayList<>();
+        MongoCursor<Installation> cursor = this.installations.find("{ \"location\" : " +
+                        "{ $near : " +
+                        "{ $geometry :" +
+                        "{ type : \"Point\" ," +
+                        "  coordinates : [ #, # ]" +
+                        "}," +
+                        "$macDistance : # " +
+                        "}}}",
+                Double.parseDouble(context.query().get("lng")),
+                Double.parseDouble(context.query().get("lat")),
+                Double.parseDouble(context.query().get("distance")))
+                .as(Installation.class);
+
+        try {
+            while(cursor.hasNext()) {
+                Installation inst = cursor.next();
+                list.add(inst);
+            }
+        } finally {
+            try {
+                cursor.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
+
+        /*
+        db.installations.find({ "location" :
+    { $near :
+        { $geometry :
+            { type : "Point" ,
+              coordinates : [ -1.5 , 47.3 ]
+            },
+            $maxDistance : 5000
+        }
+    }
+})
+         */
+	}
 }
