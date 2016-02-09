@@ -27,12 +27,10 @@ public class InstallationService {
     public static final String COLLECTION_NAME = "installations";
 
     private final MongoCollection installations;
-    private final JestClient elasticClient;
 
     @Inject
     public InstallationService(MongoDB mongoDB) throws UnknownHostException {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
-        this.elasticClient = ESConnectionUtil.createClient();
     }
 
     public Installation random() {
@@ -48,11 +46,6 @@ public class InstallationService {
         List<Installation> list = new ArrayList<>();
         cursor.forEach(installation -> list.add(installation));
         return list;
-    }
-
-    public List<Installation> list(String search) {
-
-        return null;
     }
 
 }
