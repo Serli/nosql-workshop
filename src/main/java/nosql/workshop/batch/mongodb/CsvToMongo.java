@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +46,9 @@ public class CsvToMongo {
 
 	}
 
+	private void saveActivites(String[] columns) {
+		//DBObject activites = new BasicDBObject("activites", columns[]);
+	}
 
 	private void saveEquipements(String[] columns) {
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -58,14 +62,26 @@ public class CsvToMongo {
 	}
 
 	private void saveInstallations(String[] columns) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		for (int i = 0; i < keys.length; i++) {
-			map.put(keys[i], values[i]);
-		}
-		DBObject obj = new BasicDBObject();
-		this.collection.insert(obj);
+		DBObject point = new BasicDBObject("type", "Point")
+				.append("coordinates", Arrays.asList(columns[9],columns[10]));
+		DBObject location = new BasicDBObject("location", point);
+		DBObject adresse = new BasicDBObject("numero", columns[6])
+				.append("voie", columns[7])
+				.append("lieuDit", columns[5])
+				.append("codePostal", columns[4])
+				.append("commune", columns[2]);
+		DBObject equipements = new BasicDBObject("equipements", Arrays.asList());
+		DBObject installation = new BasicDBObject("_id", columns[1])
+				.append("nom", columns[0])
+				.append("adresse", adresse)
+				.append("location", location)
+				.append("multiCommune", columns[16])
+				.append("nbPlacesParking", columns[17])
+				.append("nbPlacesParkingHandicapes", columns[18])
+				.append("dateMiseAJourFiche", columns[28])
+				.append("equipements", equipements);
+		this.collection.insert(installation);
 	}
-
 
 	public static void main(String[] args) {
 		CsvToMongo obj = new CsvToMongo();
