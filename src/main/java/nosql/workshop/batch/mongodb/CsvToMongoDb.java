@@ -57,8 +57,9 @@ public class CsvToMongoDb {
                         			columns.length<29 || columns[28].equals("\"")?null:Date.from(LocalDate.parse(columns[28].substring(0, 10))
                         																				.atStartOfDay(ZoneId.of("UTC"))
                         																				.toInstant()
-                        																	  )
-                        );
+                        																	  ))
+                        	.append("elements",Arrays.asList())																  
+                        ;
                     	coll.insert(doc);
                         //System.out.println("Une ligne");
                         //System.out.println(columns[0].matches("\".*\"")?columns[0].substring(1,columns[0].length()-1):columns[0]);
@@ -66,6 +67,64 @@ public class CsvToMongoDb {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/equipements.csv");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+               reader.lines()
+                       .skip(1)
+                       .filter(line -> line.length() > 0)
+                       .map(line -> line.split(","))
+                       .forEach(columns -> {
+                       	// Edition de la collection
+                    	   String installationId = columns[2];
+                    	   BasicDBObject searchQuery = new BasicDBObject("_id",installationId);
+                    	   
+                    	   BasicDBObject equipement = new BasicDBObject()
+                    	   			.append("numero", columns[4])
+                    	   			.append("nom", columns[3])
+                    	   			.append("type", columns[7])
+                    	   			.append("famille", columns[9])
+                    	   			.append("activites", Arrays.asList());
+                    	   
+                    	   BasicDBObject updateQuery = new BasicDBObject(
+                    				"$push",
+                    				new BasicDBObject("equipements",equipement));
+                    	   
+                    	   coll.update(searchQuery,updateQuery);
+                           //System.out.println("Une ligne");
+                           //System.out.println(columns[0].matches("\".*\"")?columns[0].substring(1,columns[0].length()-1):columns[0]);
+                       });
+           } catch (IOException e) {
+               throw new UncheckedIOException(e);
+           }
+        
+        try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/activites.csv");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+               reader.lines()
+                       .skip(1)
+                       .filter(line -> line.length() > 0)
+                       .map(line -> line.split("\",\""))
+                       .forEach(columns -> {
+                       	// Edition de la collection
+                    	   String equipementId = columns[2].trim();
+                    	   BasicDBObject searchQuery = new BasicDBObject(
+                    	   	"equipements" , 
+                    	   	new BasicDBObject( 
+                    	   		"$elemMatch",
+                    	   		new BasicDBObject("numero",equipementId)));
+
+                    	   String activite = columns[5];
+                    	   BasicDBObject updateQuery = new BasicDBObject(
+                    	   	"$push",
+                    	   	new BasicDBObject("equipements.$.activites",activite));
+
+                    	   
+                    	   coll.update(searchQuery,updateQuery);
+                           //System.out.println("Une ligne");
+                           //System.out.println(columns[0].matches("\".*\"")?columns[0].substring(1,columns[0].length()-1):columns[0]);
+                       });
+           } catch (IOException e) {
+               throw new UncheckedIOException(e);
+           }
     }
  
  
