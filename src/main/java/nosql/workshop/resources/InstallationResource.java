@@ -25,7 +25,7 @@ public class InstallationResource {
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        return null;
+        return service.getAllInstallations();
     }
 
     @Get("/:numero")

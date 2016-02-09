@@ -29,7 +29,12 @@ public class InstallationService {
     }
 
     public List<Installation> getAllInstallations(){
-        return null;
+        List<Installation> myList = new ArrayList<Installation>();
+        MongoCursor<Installation> all = installations.find().as(Installation.class);
+        while(all.hasNext()) {
+            myList.add(all.next());
+        }
+        return myList;
     }
 
     public Installation getInstallation(String numero){
