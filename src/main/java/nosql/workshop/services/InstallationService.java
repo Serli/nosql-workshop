@@ -36,7 +36,7 @@ public class InstallationService {
 
         Installation installation = new Installation();
         Installation installationR = installations.findOne().as(Installation.class);
-        installation.setNom(installationR.get_id());
+        installation.set_id(installationR.get_id());
         installation.setNom(installationR.getNom());
         installation.setEquipements(installationR.getEquipements());
         installation.setAdresse(installationR.getAdresse());
@@ -51,7 +51,7 @@ public class InstallationService {
     }
 
     public Installation get(String numero) {
-        return new Installation();
+        return installations.findOne("{_id: '" + numero + "'}").as(Installation.class);
     }
 
     public InstallationsStats stats() {
