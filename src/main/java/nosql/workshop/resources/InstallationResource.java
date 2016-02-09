@@ -39,7 +39,7 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
+        return installationService.list("nant");
     }
 
     @Get("/geosearch")
