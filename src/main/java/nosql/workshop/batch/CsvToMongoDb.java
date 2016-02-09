@@ -3,6 +3,7 @@ package nosql.workshop.batch;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import nosql.workshop.utils.Utils;
 import org.bson.Document;
 
 import java.io.*;
@@ -75,11 +76,11 @@ public class CsvToMongoDb {
                         dbCollection.updateOne(
                                 new Document().append("equipements",
                                         new Document("$elemMatch",
-                                                new Document("numero", cleanString(columns[2]))
+                                                new Document("numero", Utils.cleanString(columns[2]))
                                         )
                                 ),
                                 new Document().append("$addToSet",
-                                        new Document().append("equipements.$.activites", cleanString(columns[5]))
+                                        new Document().append("equipements.$.activites", Utils.cleanString(columns[5]))
                                 )
                         );
                         doc.clear();
@@ -96,18 +97,18 @@ public class CsvToMongoDb {
      */
     private static void parseDocInstallation(String[] line, Document document) {
         // We consider the csv file coherent at all times
-        document.append("_id", cleanString(line[1]))
-                .append("nom", cleanString(line[0]))
+        document.append("_id", Utils.cleanString(line[1]))
+                .append("nom", Utils.cleanString(line[0]))
                 .append("adresse",
-                        new Document().append("numero", cleanString(line[6]))
-                                .append("voie", cleanString(line[7]))
-                                .append("lieuDit", cleanString(line[5]))
-                                .append("codePostal", cleanString(line[4]))
-                                .append("commune", cleanString(line[2]))
+                        new Document().append("numero", Utils.cleanString(line[6]))
+                                .append("voie", Utils.cleanString(line[7]))
+                                .append("lieuDit", Utils.cleanString(line[5]))
+                                .append("codePostal", Utils.cleanString(line[4]))
+                                .append("commune", Utils.cleanString(line[2]))
                 ).append("location",
                 new Document().append("type", "Point")
-                        .append("coordinates", asList(Double.parseDouble(cleanString(line[9])), Double.parseDouble(cleanString(line[10]))))
-        ).append("multiCommune", "Oui".equals(cleanString(line[16])))
+                        .append("coordinates", asList(Double.parseDouble(Utils.cleanString(line[9])), Double.parseDouble(Utils.cleanString(line[10]))))
+        ).append("multiCommune", "Oui".equals(Utils.cleanString(line[16])))
                 .append("nbPlacesParking", getIntValue(line[17]))
                 .append("nbPlacesParkingHandicapes", getIntValue(line[18]))
         ;
@@ -124,18 +125,9 @@ public class CsvToMongoDb {
                 .append("type", line[7])
                 .append("famille", line[9]);
     }
-
-    /**
-     * Removes double quotes from a String.
-     * @param toClean the string ot clean
-     * @return the cleaned string
-     */
-    private static String cleanString(String toClean) {
-        return toClean.matches("\".*\"") ? toClean.substring(1, toClean.length() - 1).trim() : toClean.trim();
-    }
-
+    
     private static int getIntValue(String toClean) {
-        String val = cleanString(toClean);
+        String val = Utils.cleanString(toClean);
         return val.isEmpty() ? 0 : Integer.parseInt(val);
     }
 

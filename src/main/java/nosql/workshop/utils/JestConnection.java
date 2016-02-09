@@ -1,4 +1,4 @@
-package nosql.workshop.connection;
+package nosql.workshop.utils;
 
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
@@ -7,9 +7,9 @@ import io.searchbox.client.config.HttpClientConfig;
 /**
  * Utilitaire permettant de gérer la connexion à ElasticSearch
  */
-public abstract class ESConnectionUtil {
+public abstract class JestConnection {
 
-    private ESConnectionUtil() {
+    private JestConnection() {
     }
 
     public static JestClient createClient() {

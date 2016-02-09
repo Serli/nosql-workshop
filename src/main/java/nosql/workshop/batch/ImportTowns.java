@@ -3,7 +3,8 @@ package nosql.workshop.batch;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
-import nosql.workshop.connection.ESConnectionUtil;
+import nosql.workshop.utils.JestConnection;
+import nosql.workshop.utils.Utils;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.*;
@@ -16,7 +17,7 @@ public class ImportTowns {
     public static void main(String[] args) {
 
         // Connect ElasticSearch
-        JestClient elasticClient = ESConnectionUtil.createClient();
+        JestClient elasticClient = JestConnection.createClient();
 
         try (
                 // Get and read CSV file
@@ -63,16 +64,16 @@ public class ImportTowns {
         try {
             String jsonValues = XContentFactory.jsonBuilder()
                     .startObject()
-                    .field("townname", values[1])
-                    .field("townname_suggest", values[2])
-                    .field("postcode", values[3])
-                    .field("pays", values[4])
-                    .field("region", values[5])
-                    .field("x", values[6])
-                    .field("y", values[7])
+                    .field("townname", Utils.cleanString(values[1]))
+                    .field("townname_suggest", Utils.cleanString(values[2]))
+                    .field("postcode", Utils.cleanString(values[3]))
+                    .field("pays", Utils.cleanString(values[4]))
+                    .field("region", Utils.cleanString(values[5]))
+                    .field("x", Utils.cleanString(values[6]))
+                    .field("y", Utils.cleanString(values[7]))
                     .endObject()
                     .string();
-            bulkBuilder.addAction(new Index.Builder(jsonValues).id(values[0]).build());
+            bulkBuilder.addAction(new Index.Builder(jsonValues).id(Utils.cleanString(values[0])).build());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
