@@ -7,11 +7,13 @@ import com.mongodb.DBObject;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 
+import org.elasticsearch.common.collect.Lists;
 import org.jongo.FindOne;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.List;
 
 import static nosql.workshop.model.Installation.*;
 
@@ -34,5 +36,18 @@ public class InstallationService {
 
     public Installation random() {
         return installations.findOne().as(Installation.class);
+    }
+    
+    public List<Installation> list(){
+    	 Iterable<Installation> list = installations.find().as(Installation.class);
+    	 return Lists.newArrayList(list);
+    }
+    
+    public Installation get(String numero){
+    	return installations.findOne("{_id:'"+numero+"'}").as(Installation.class);
+    }
+    
+    public List<Installation> search(String query){
+    	
     }
 }
