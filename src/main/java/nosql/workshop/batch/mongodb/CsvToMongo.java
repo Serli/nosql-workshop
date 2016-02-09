@@ -98,6 +98,22 @@ public class CsvToMongo {
             e.printStackTrace();
         }
         return new ArrayList<>();
+
+        /*
+          try (InputStream inputStream = CsvToMongo.class.getResourceAsStream("/batch/csv/installations.csv");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            reader.lines()
+                    .skip(1)
+                    .filter(line -> line.length() > 0)
+                    .map(line -> line.split(","))
+                    .forEach(columns -> {
+                        System.out.println("Une ligne");
+                        System.out.println(columns[0].matches("\".*\"")?columns[0].substring(1,columns[0].length()-1):columns[0]);
+                    });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+         */
     }
 
 
