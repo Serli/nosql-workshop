@@ -8,7 +8,6 @@ import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
 /**
@@ -55,7 +54,16 @@ public class InstallationResource {
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        return null;
+        String lat = context.get("lat");
+        String lng = context.get("lng");
+        String distance = context.get("distance");
+
+        // TODO bad request
+//        if (lat == null || lng == null | distance == null) {
+//            throw new BadRequestException();
+//        }
+
+        return service.getGeoSearchResults(lat, lng, distance);
 
     }
 

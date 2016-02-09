@@ -1,5 +1,6 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Equipement;
@@ -9,7 +10,6 @@ import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -29,22 +29,11 @@ public class InstallationService {
     }
 
     public List<Installation> getAll() {
-        Iterator<Installation> it = installations.find().as(Installation.class).iterator();
-        List<Installation> result = new ArrayList<>();
-        while (it.hasNext()) {
-            result.add(it.next());
-        }
-
-        return result;
+        return Lists.newArrayList(installations.find().as(Installation.class).iterator());
     }
 
     public Installation getById(String id) {
         return installations.findOne("{_id:'" + id + "'}").as(Installation.class);
-    }
-
-    public List<Installation> get(String query) {
-
-        return null;
     }
 
     public Installation getRandom() {
@@ -73,28 +62,16 @@ public class InstallationService {
         }
 
         // average
-        Iterator<Equipement> equipementIterator = installations.find("{equipements:1}").projection("{equipements:#}", 1).as(Equipement.class).iterator();
-        double sum = 0;
-        while (equipementIterator.hasNext()) {
-            equipementIterator.next();
-            sum++;
-        }
+        double sum = installations.find("{equipements: {$exists:1}}").projection("{equipements:#}", 1).as(Equipement.class).count();
         double averageEquipmentsPerInstallation = sum / totalCount;
 
         // count by activity
-        List<CountByActivity> countByActivityList = new ArrayList<>();
-        List<String> activities = new ArrayList<>();
-        installations.find("{activites:1}").projection("{activites:#}", 1).as(String.class).iterator().forEachRemaining(activities::add);
-        for (String activity : activities) {
-            // get number of installations with the current activity
-            long total = installations.find("{activites: {$in:['" + activity + "']}}").as(Installation.class).count();
-
-            // create corresponding countbyactivity
-            CountByActivity countByActivity = new CountByActivity();
-            countByActivity.setActivite(activity);
-            countByActivity.setTotal(total);
-            countByActivityList.add(countByActivity);
-        }
+        List<CountByActivity> countByActivityList = Lists.newArrayList(
+                installations.aggregate("{$unwind: '$equipements'}")
+                .and("{$unwind: '$equipements.activites'}")
+                .and("{$group: {_id: '$equipements.activites', total:{$sum : 1}}}")
+                .and("{$project: {activite: '$_id', total : 1}}")
+                .as(CountByActivity.class).iterator());
 
 
         InstallationsStats stats = new InstallationsStats();
@@ -103,5 +80,14 @@ public class InstallationService {
         stats.setInstallationWithMaxEquipments(installationWithMaxEquipements);
         stats.setCountByActivity(countByActivityList);
         return stats;
+    }
+
+    public List<Installation> getGeoSearchResults(String lat, String lng, String distance) {
+        return Lists.newArrayList(installations.find(
+                String.format("{location:{$near:{$geometry:{type:'Point', coordinates: [%s, %s]}, $maxDistance: %s}}}",
+                        String.valueOf(lat),
+                        String.valueOf(lng),
+                        String.valueOf(distance)))
+                .as(Installation.class).iterator());
     }
 }
