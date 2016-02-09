@@ -21,6 +21,10 @@ public class ImportDataInMongo {
         collection = db.getCollection(COLLECTION_NAME);
     }
 
+    private String cleanString(String s) {
+        return s.matches("\".*\"")? s.substring(1, s.length() - 1): s;
+    }
+
     private void insertInstallations() {
         InputStream is = getClass().getResourceAsStream("/batch/csv/installations.csv");
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -32,20 +36,20 @@ public class ImportDataInMongo {
             .forEach(column -> {
                 //TODO insert in mongo
                 DBObject installation = new BasicDBObject("type", "Installation")
-                        .append("_id", column[1])
-                        .append("nom", column[0])
+                        .append("_id", cleanString(column[1]))
+                        .append("nom", cleanString(column[0]))
                         .append("adresse", new BasicDBObject("type", "adresse")
-                                .append("numero", column[6])
-                                .append("voie", column[7])
-                                .append("lieuDit", column[5])
-                                .append("codePostal", column[4])
-                                .append("commune", column[2]))
+                                .append("numero", cleanString(column[6]))
+                                .append("voie", cleanString(column[7]))
+                                .append("lieuDit", cleanString(column[5]))
+                                .append("codePostal", cleanString(column[4]))
+                                .append("commune", cleanString(column[2])))
                         .append("location", new BasicDBObject("type", "Point")
-                                .append("coordinates", column[8]))
-                        .append("multiCommune", column[16])
-                        .append("nbPlacesParking", column[17])
-                        .append("nbPlacesParkingHandicapes", column[18])
-                        .append("dateMiseAJourFiche", column[28]);
+                                .append("coordinates", cleanString(column[8])))
+                        .append("multiCommune", cleanString(column[16]))
+                        .append("nbPlacesParking", cleanString(column[17]))
+                        .append("nbPlacesParkingHandicapes", cleanString(column[18]))
+                        .append("dateMiseAJourFiche", cleanString(column[28]));
                 collection.save(installation);
             });
     }
@@ -73,7 +77,6 @@ public class ImportDataInMongo {
                             .append("type", type)
                             .append("famille", famille));
 
-
                     collection.update(new BasicDBObject("_id", numInstall),
                             new BasicDBObject("equipements", equipements));
                 });
@@ -89,6 +92,9 @@ public class ImportDataInMongo {
                 .map(line -> line.split(","))
                 .forEach(column -> {
                     //TODO update in mongo
+                    String numEquip = cleanString(column[2]);
+                    DBObject installation = collection.findOne(new BasicDBObject("equipements.numero", numEquip));
+                    installation.get("equipements");
                 });
     }
 
