@@ -1,10 +1,12 @@
 package nosql.workshop.services;
 
 import com.google.common.collect.Iterators;
+
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.FindOne;
 import org.jongo.MongoCollection;
@@ -31,17 +33,7 @@ public class InstallationService {
     }
 
     public Installation random() {
-
         return installations.aggregate("{ $sample: { size: 1 } }").as(Installation.class).next();
-
-        //Installation installation = new Installation();
-        //installation.setNom("Mon Installation");
-        //installation.setEquipements(Arrays.asList(new Equipement()));
-        //installation.setAdresse(new Adresse());
-        //Location location = new Location();
-       //location.setCoordinates(new double[]{3.4, 3.2});
-        //installation.setLocation(location);
-        //return installation;
     }
 
     public Installation getById(String Id) {
@@ -53,16 +45,16 @@ public class InstallationService {
     }
 
     public InstallationsStats getStats(){
-        return null;
+        InstallationsStats stats = new InstallationsStats();
+        stats.setTotalCount(installations.count(""));
+        //List<String,Integer> = installations.aggregate("{$group: { _id: null, $equipements.activites, count: { $sum: 1 }}}");
+        //stats.setCountByActivity(installations.aggregate("{$group: { _id: null, $equipements.activites, count: { $sum: 1 }}}"));
+        //for ()
+        return stats;
     }
 
-    public  List<Installation> geoSearch(String info) {
-        return null;
-    }
-
-    public List<Installation> search(String info) {
-        //return Lists.newArrayList(installations.find());
-        return null;
+    public  List<Installation> geoSearch(Double latitude, Double longitude, Integer dist) {
+        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : "+"Point"+", coordinates : [ "+latitude+", "+longitude+" ]}, $maxDistance : "+dist+"}}}").as(Installation.class).iterator());
     }
 
 }
