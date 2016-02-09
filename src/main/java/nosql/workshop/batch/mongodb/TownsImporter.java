@@ -1,4 +1,6 @@
-package nosql.workshop.batch.mongodb; /*
+package nosql.workshop.batch.mongodb;
+
+/*
  * ${FILE_NAME}
  * author:   Maxime Perocheau
  * created:  2016 février 09 @ 12:05
@@ -7,14 +9,12 @@ package nosql.workshop.batch.mongodb; /*
  * TODO : description
  */
 
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import io.searchbox.client.JestClient;
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
+import nosql.workshop.connection.ESConnectionUtil;
 
 import java.io.IOException;
 import java.util.*;
@@ -23,16 +23,8 @@ public class TownsImporter {
 
     private static String pathTowns = "./src/main/resources/batch/csv/towns_paysdeloire.csv";
 
-    public static void main (String[] args) {
-
-        JestClientFactory factory = new JestClientFactory();
-        factory.setHttpClientConfig(new HttpClientConfig
-                .Builder("http://localhost:9200")
-                .multiThreaded(true)
-                .build());
-        JestClient client = factory.getObject();
-
-        List<Index> list = new ArrayList<>();
+    public static List<Index> getIndex(){
+        List<Index> listIndex = new ArrayList<>();
 
         for (Map<String, String> line : ReadCVS.run(pathTowns)) {
 
@@ -46,15 +38,19 @@ public class TownsImporter {
                             )
                     );
 
-            list.add(new Index.Builder(town).id(line.get("OBJECTID")).build());
+            listIndex.add(new Index.Builder(town).id(line.get("OBJECTID")).build());
         }
+        return listIndex;
+    }
 
-        Map<String, Object> source = new HashMap<String, Object>();
-        source.put("town", list);
+    public static void main (String[] args) {
+
+        JestClient client = ESConnectionUtil.createClient("");
+
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("towns")
                 .defaultType("town")
-                .addAction(list)
+                .addAction(getIndex())
                 .build();
 
         try {

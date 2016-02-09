@@ -34,12 +34,12 @@ public class ReadCVS {
 
                 if (firstLine){
                     head = Arrays.asList(line.split(cvsSplitBy));
-                    //System.out.println(head.toString());
-                    //System.out.println("taille "+head.size());
                     firstLine = false;
                 } else {
 
-                    List<String> myLine = null;
+                    List<String> myLine;
+
+                    // select separator
                     if(line.contains("\"[")){
                         myLine = Arrays.asList(line.split("\""+cvsSplitBy+"\""));
                     } else {
@@ -47,9 +47,6 @@ public class ReadCVS {
                     }
                     Map<String, String> map = new HashMap<>();
 
-                    //System.out.println("i " + myLine.size());
-
-                    // use comma as separator
                     if(head.size() == myLine.size()) {
                         for (String e : myLine) {
                             int index = myLine.indexOf(e);

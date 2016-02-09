@@ -7,47 +7,24 @@ package nosql.workshop.batch.mongodb; /*
  * TODO : description
  */
 
-import com.google.gson.GsonBuilder;
 import com.mongodb.*;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoDatabase;
 import io.searchbox.client.JestClient;
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.client.http.JestHttpClient;
 import io.searchbox.core.Bulk;
-import io.searchbox.core.BulkResult;
 import io.searchbox.core.Index;
-import org.bson.BSON;
-import org.bson.Document;
+import nosql.workshop.connection.ESConnectionUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MongoToElastic {
 
-    MongoClient mongoClient;
-
-    public MongoToElastic() {
-        this.mongoClient = new MongoClient();
-    }
-
     public static void main(String[] args) {
 
-        MongoToElastic test = new MongoToElastic();
-
-        DB db = test.mongoClient.getDB( "nosql-workshop" );
+        DB db = new MongoClient().getDB( "nosql-workshop" );
         Cursor cursor = db.getCollection("installations").find();
 
-        JestClientFactory factory = new JestClientFactory();
-        factory.setHttpClientConfig(new HttpClientConfig
-                .Builder("http://localhost:9200")
-                .multiThreaded(true)
-                .build());
-        JestClient client = factory.getObject();
+        JestClient client = ESConnectionUtil.createClient("");
 
         List<Index> list = new ArrayList<>();
 
@@ -59,7 +36,6 @@ public class MongoToElastic {
         }
         cursor.close();
 
-        Map<String, Object> source = new HashMap<String, Object>();
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
                 .defaultType("installation")
