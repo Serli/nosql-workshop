@@ -170,21 +170,21 @@ public class ImportCSV {
             DBObject activite = new BasicDBObject();
 
             while ((line = br.readLine()) != null) {
-                
+                line = line.substring(1, line.length() - 1);
                 String[] data = line.split(cvsSplitBy);
 
-                equipement = new BasicDBObject("type", "Equipement")
-                        .append("numero", getCSVData()) // EquipementID
-                        .append("nom", data[5]) // EquNom
-                        .append("type", data[7]) // EquipemementTypeLib
-                        .append("famille", data[9]); // FamilleFicheLib
-
-
+                activite = new BasicDBObject("type", "Activite")
+                        .append("code", getDataOrElse(data, 4, "")) //Activité code
+                        .append("nom", getDataOrElse(data, 5, "")) // Activité libellé
+                        .append("niveau", getDataOrElse(data, 9, "")); // Niveau effectivement pratiqué
+                activites.insert(activite);
             }
-            equipements.insert(equipement);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ArrayIndexOutOfBoundsException e){
+            System.out.println(line);
             e.printStackTrace();
         } finally {
             if (br != null) {
@@ -197,8 +197,8 @@ public class ImportCSV {
         }
     }
 
-    private static String getCSVData(int column, String[] line){
-        return line[column*2];
+    private static String getDataOrElse(String[] data, int index, String or){
+        return index < data.length ? data[index] : or;
     }
 
 }
