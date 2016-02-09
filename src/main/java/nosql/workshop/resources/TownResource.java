@@ -21,7 +21,7 @@ public class TownResource {
 
     @Get("suggest/:text")
     public List<TownSuggest> suggest(String text) {
-        return null;
+        return searchService.autocompleteTown(text);
     }
 
     @Get("location/:townName")

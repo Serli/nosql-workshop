@@ -1,5 +1,6 @@
 package nosql.workshop.services;
 
+import com.google.gson.JsonArray;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
@@ -13,6 +14,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,6 +72,38 @@ public class SearchService {
             } else {
                 return null;
             }
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Gets the town names beginning with a given string.
+     * @param string string the towns have to begin with
+     * @return the town names list
+     */
+    public List<TownSuggest> autocompleteTown(String string) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.prefixQuery("townname", string));
+        Search research = new Search.Builder(searchSourceBuilder.toString())
+                .addIndex("towns")
+                .addType("town")
+                .build();
+        try {
+            SearchResult result = elasticClient.execute(research);
+            JsonArray hits = result.getJsonObject().get("hits").getAsJsonObject().get("hits").getAsJsonArray();
+            List<TownSuggest> townSuggests = new ArrayList<>();
+            String name;
+            List<Double> location = new ArrayList<>();
+            for (int i=0; i<hits.size(); i++) {
+                JsonObject hit = hits.get(i).getAsJsonObject().get("_source").getAsJsonObject();
+                name = hit.get("townname").getAsString();
+                location.add(hit.get("x").getAsDouble());
+                location.add(hit.get("y").getAsDouble());
+                townSuggests.add(new TownSuggest(name, location));
+                location.clear();
+            }
+            return townSuggests;
         } catch (IOException e) {
             return null;
         }
