@@ -28,9 +28,9 @@ public class CSVtoMongo {
 
         MongoClient mongoClient = new MongoClient();
         DB db = mongoClient.getDB("nosql-workshop");
-        DBCollection collection = db.getCollection("people");
+        DBCollection collection = db.getCollection("installations");
 
-
+        collection.drop();
 
     for (Map<String, String> line : ReadCVS.run(pathInstallation)) {
         DBObject document = new BasicDBObject()
@@ -56,8 +56,8 @@ public class CSVtoMongo {
                                 )
                 )
                 .append("multiCommune", "Oui".equals(line.get("Multi commune")))
-                .append("nbPlacesParking", line.get("Nombre total de place de parking").isEmpty() ? null : Integer.valueOf(line.get("Nombre total de place de parking")))
-                .append("nbPlacesParkingHandicapes", line.get("Nombre total de place de parking handicapés").isEmpty() ? null : Integer.valueOf(line.get("Nombre total de place de parking handicapés")))
+                .append("nbPlacesParking", line.get("Nombre total de place de parking") == null || line.get("Nombre total de place de parking").isEmpty() ? 0 : Integer.valueOf(line.get("Nombre total de place de parking")))
+                .append("nbPlacesParkingHandicapes", line.get("Nombre total de place de parking handicapés") == null || line.get("Nombre total de place de parking handicapés").isEmpty() ? 0 : Integer.valueOf(line.get("Nombre total de place de parking handicapés")))
                 .append(
                         "dateMiseAJourFiche",
                         line.size() < 29 || line.get("Date de mise à jour de la fiche installation").isEmpty()
