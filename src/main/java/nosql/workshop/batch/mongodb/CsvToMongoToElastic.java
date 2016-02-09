@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 
-import org.elasticsearch.common.lucene.store.ThreadSafeInputStreamIndexInput;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -15,23 +14,25 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
-public class CsvToMongo {
+public class CsvToMongoToElastic {
 	DB db;
 	DBCollection collection;
 
-	public CsvToMongo() {
+	public CsvToMongoToElastic() {
 		this.db = new MongoClient().getDB("nosql-workshop");
 		this.collection = db.getCollection("installation");
 
 	}
 
 	public void run(String filename, String name) {
-		try (InputStream inputStream = CsvToMongo.class.getResourceAsStream(filename);
+		String splitPattern = name.equals("equipements") ? "," : "\",\"";
+		try (InputStream inputStream = CsvToMongoToElastic.class.getResourceAsStream(filename);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 			reader.lines()
 			.skip(1)
 			.filter(line -> line.length() > 0)
-			.map(line -> line.split(","))
+			.map(line -> line.substring(1, line.length() - 1))
+			.map(line -> line.split(splitPattern))
 			.forEach(columns -> {
 				if (name.equals("installations")) this.saveInstallations(columns);
 				else if (name.equals("equipements")) this.saveEquipements(columns);
@@ -40,25 +41,23 @@ public class CsvToMongo {
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-		System.out.println("Done");
+		System.out.println("Done " + name);
 
 	}
 
 	private void saveActivites(String[] columns) {
-		DBObject activites = new BasicDBObject("activites", columns[5]);
-		DBObject query = new BasicDBObject("numero", columns[2]);
-		DBObject update = new BasicDBObject("$push", new BasicDBObject("activites", activites));
+		DBObject query = new BasicDBObject("equipements", new BasicDBObject("$elemMatch", new BasicDBObject("numero", columns[2].trim())));
+		DBObject update = new BasicDBObject("$push", new BasicDBObject("activites", columns[5]));
 		this.collection.findAndModify(query, update);
 	}
 
 	private void saveEquipements(String[] columns) {
-		DBObject activites = new BasicDBObject("activities", Arrays.asList());
 		DBObject equipement = new BasicDBObject()
 			.append("numero", columns[4])
 			.append("nom", columns[5])
 			.append("type", columns[7])
 			.append("famille", columns[8])
-			.append("activites", activites);
+			.append("activites", Arrays.asList());
 		DBObject query = new BasicDBObject("_id", columns[2]);
 		DBObject update = new BasicDBObject("$push", new BasicDBObject("equipements", equipement));
 		this.collection.findAndModify(query, update);
@@ -72,7 +71,6 @@ public class CsvToMongo {
 				.append("lieuDit", columns[5])
 				.append("codePostal", columns[4])
 				.append("commune", columns[2]);
-		DBObject equipements = new BasicDBObject("equipements", Arrays.asList());
 		DBObject installation = new BasicDBObject("_id", columns[1])
 				.append("nom", columns[0])
 				.append("adresse", adresse)
@@ -81,12 +79,12 @@ public class CsvToMongo {
 				.append("nbPlacesParking", columns[17])
 				.append("nbPlacesParkingHandicapes", columns[18])
 				.append("dateMiseAJourFiche", columns[28])
-				.append("equipements", equipements);
+				.append("equipements", Arrays.asList());
 		this.collection.insert(installation);
 	}
 
 	public static void main(String[] args) {
-		CsvToMongo obj = new CsvToMongo();
+		CsvToMongoToElastic obj = new CsvToMongoToElastic();
 		obj.collection.drop();
 		obj.run("/batch/csv/installations.csv", "installations");
 		obj.run("/batch/csv/equipements.csv", "equipements");
