@@ -9,12 +9,11 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 
+import org.bson.Document;
 import org.jongo.Jongo;
 
-import nosql.workshop.services.FillDb;
 import nosql.workshop.services.MongoDB;
 
-import com.mongodb.*;
 
 /**
  * Created by chriswoodrow on 09/02/2016.
@@ -53,9 +52,9 @@ public class CsvToMongoDb {
 	private BasicDBObject createEquipementObject(String[] columns) {
 		BasicDBObject object = new BasicDBObject()
 		.append("_id", columns[4])
-		.append("nom",columns[5])
-		.append("type",columns[7])
-		.append("famille",columns[9]);
+		.append("nom", columns[5])
+		.append("type", columns[7])
+		.append("famille", columns[9]);
 
 		connection.getCollection(INSTALLATIONS).update("{_id:"+columns[2]+"}").with("{$push : {"+EQUIPEMENTS+": #}}",object);
 		return object;
@@ -63,8 +62,8 @@ public class CsvToMongoDb {
 
 	private BasicDBObject createActiviteObject(String[] columns) {
 		BasicDBObject object =  new BasicDBObject()
-		.append("nom",columns[5])
-		.append("_id",columns[4]);
+		.append("nom", columns[5])
+		.append("_id", columns[4]);
 
 		connection.getCollection(EQUIPEMENTS).update("{_id:"+columns[2]+"}").with("{$push : {"+ACTIVITES+": #}}",object);
 		return object;
@@ -97,14 +96,14 @@ public class CsvToMongoDb {
 						.append("nbPlacesParkingHandicapes", columns[18].isEmpty() ? null : Integer.valueOf(columns[18]))
 						.append(
 								"dateMiseAJourFiche",
-								columns.length < 29 || columns[28].isEmpty() || columns[28].length()<10
-								? null :
-									Date.from(
-											LocalDate.parse(columns[28].substring(0, 10))
-											.atStartOfDay(ZoneId.of("UTC"))
-											.toInstant()
-											)
-								);
+								columns.length < 29 || columns[28].isEmpty() || columns[28].length() < 10
+										? null :
+										Date.from(
+												LocalDate.parse(columns[28].substring(0, 10))
+														.atStartOfDay(ZoneId.of("UTC"))
+														.toInstant()
+										)
+						);
 		connection.getDatabase().getCollection(INSTALLATIONS).insert(object);
 		return object;
 	}
@@ -140,14 +139,20 @@ public class CsvToMongoDb {
 
 	}
 
-	public static void main(String[] args) {
-		new CsvToMongoDb().fillDB();
+	public void createIndex(){
+		connection.getDatabase().getCollection(INSTALLATIONS).createIndex(new BasicDBObject("nom",1).append("adresse.commune",1));
 	}
 
+    public void fillDB(){
+        extractCsv(INSTALLATIONS);
+        extractCsv(EQUIPEMENTS);
+        extractCsv(ACTIVITES);
+		createIndex();
+    }
 
-	public void fillDB(){
-		extractCsv(INSTALLATIONS);
-		extractCsv(EQUIPEMENTS);
-		extractCsv(ACTIVITES);
-	}
+
+    public static void main(String[] args) {
+        new CsvToMongoDb().fillDB();
+    }
+
 }
