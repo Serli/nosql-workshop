@@ -94,7 +94,7 @@ public class Installation {
         this.equipements = equipements;
     }
 
-    public class Adresse {
+    public static class Adresse {
 
         private String numero;
         private String voie;
@@ -145,7 +145,7 @@ public class Installation {
 
     }
 
-    public class Location {
+    public static class Location {
 
         private String type;
         private double[] coordinates;
