@@ -66,8 +66,8 @@ public class InstallationService {
                 .and("{$group: {numero: 0, avg:{$avg : 1}}}").as(Double.class));*/
         stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
                 .and("{$unwind: \"$equipements.activites\"}")
-                .and("{$group: {numero: \"$equipements.activites\", total:{$sum : 1}}}")
-                .and("{$project: {activite: \"$numero\", total : 1}}")
+                .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
+                .and("{$project: {activite: \"$_id\", total : 1}}")
                 .as(CountByActivity.class).iterator()));
         return stats;
     }
