@@ -45,8 +45,4 @@ public class InstallationService {
     public List<Installation> list() {
         return Lists.newArrayList(installations.find("").as(Installation.class).iterator());
     }
-
-    public Double[] getLocation(String townName) {
-        return null;
-    }
 }

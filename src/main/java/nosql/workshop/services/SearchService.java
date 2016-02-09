@@ -24,4 +24,8 @@ public class SearchService {
         return null;
 
     }
+
+    public Double[] getLocation(String townName) {
+        return new Double[]{0.,10.};
+    }
 }
