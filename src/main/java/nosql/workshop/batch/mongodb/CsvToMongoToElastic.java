@@ -3,6 +3,8 @@ package nosql.workshop.batch.mongodb;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
+import io.searchbox.core.Delete;
+import io.searchbox.core.Index;
 import io.searchbox.core.Update;
 import io.searchbox.indices.CreateIndex;
 
@@ -11,14 +13,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
+
+import nosql.workshop.connection.ESConnectionUtil;
+import nosql.workshop.model.Equipement;
+import nosql.workshop.model.Installation;
+import nosql.workshop.model.Installation.Adresse;
+import nosql.workshop.model.Installation.Location;
 
 import org.bson.Document;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -49,12 +59,7 @@ public class CsvToMongoToElastic {
 	public CsvToMongoToElastic() {
 		this.db = new MongoClient().getDB("nosql-workshop");
 		this.collection = db.getCollection("installations");
-		JestClientFactory factory = new JestClientFactory();
-		factory.setHttpClientConfig(new HttpClientConfig
-				.Builder("http://localhost:9200")
-		.multiThreaded(true)
-		.build());
-		this.elasticClient = factory.getObject();
+		this.elasticClient = ESConnectionUtil.createClient("http://localhost:9200");
 	}
 
 	private void saveToMongo() {
@@ -68,33 +73,30 @@ public class CsvToMongoToElastic {
 			this.elasticClient.execute(new CreateIndex.Builder("installations").build());
 			DBCursor cursor = this.collection.find();
 			while(cursor.hasNext()) {
-				/*BasicDBObject installation = (BasicDBObject)cursor.next();
-				
+				BasicDBObject installation = (BasicDBObject)cursor.next();
+				Installation source = new Installation();
+				BasicDBObject ad = (BasicDBObject)installation.get("adresse");
+				Adresse adresse = new Adresse();
+				adresse.setCodePostal(ad.getString("codePostal"));
+				adresse.setCommune(ad.getString("commune"));
+				adresse.setLieuDit(ad.getString("lieuDit"));
+				adresse.setNumero(ad.getString("numero"));
+				adresse.setVoie(ad.getString("voie"));
+				source.setAdresse(adresse);
+				source.setDateMiseAJourFiche((Date)installation.get("dateMiseAJourFiche"));
+				source.setEquipements(new ArrayList<Equipement>());
 				BasicDBObject loc = (BasicDBObject)installation.get("location");
-				BasicDBList coo = (BasicDBList)loc.get("coordinates");
-				
-				String coordinates = XContentFactory.jsonBuilder()
-						.startArray()
-						.value((Double)coo.get(0))
-						.value((Double)coo.get(1))
-						.endArray().string();
-				String location = XContentFactory.jsonBuilder()
-						.startObject()
-						.field("coordinates", coordinates)
-						.endObject().string();
-				String source = XContentFactory.jsonBuilder()
-						.startObject()
-						.field("nom", installation.get("nom"))
-						.field("location", location)
-						.endObject().string();
-				String doc = XContentFactory.jsonBuilder()
-						.startObject()
-						.field("script", source)
-						.endObject().string();
-				this.elasticClient.execute(new Update.Builder(doc).index("installations").type("installation").id((String)installation.get("_id")).build());*/
-				Client client = NodeBuilder.nodeBuilder().client(true).node().client();
-				client.admin().indices().prepareCreate("installations").execute().actionGet();
-				
+				BasicDBList coordinates = (BasicDBList)loc.get("coordinates");
+				Location location = new Location();
+				location.setType(loc.getString("type"));
+				location.setCoordinates(new double[]{(double)coordinates.get(0), (double)coordinates.get(1)});
+				source.setLocation(location);
+				source.setMultiCommune((boolean)installation.get("multiCommune"));
+				source.setNbPlacesParking(Integer.parseInt(((String)installation.getString("nbPlacesParking")).length() > 0 ? (String)installation.getString("nbPlacesParking") : "0"));
+				source.setNbPlacesParkingHandicapes(Integer.parseInt(((String)installation.getString("nbPlacesParkingHandicapes")).length() > 0 ? (String)installation.getString("nbPlacesParkingHandicapes") : "0"));
+				source.setNom((String)installation.getString("nom"));
+				Index index = new Index.Builder(source).index("installations").type("installation").build();
+				this.elasticClient.execute(index);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -163,6 +165,18 @@ public class CsvToMongoToElastic {
 							.append("equipements", Arrays.asList());
 		this.collection.insert(installation);
 	}
+	
+	private void dropElastic() {
+		try {
+			this.elasticClient.execute(new Delete.Builder("1")
+			.index("installations")
+			.type("installation")
+			.build());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 
 	public static void main(String[] args) {
@@ -171,6 +185,8 @@ public class CsvToMongoToElastic {
 		//obj.collection.createIndex(new BasicDBObject("$**", "text"));
 		//obj.saveToMongo();
 		//obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
+		obj.dropElastic();
 		obj.saveToElastic();
 	}
+
 }
