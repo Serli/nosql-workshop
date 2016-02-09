@@ -43,7 +43,10 @@ public class CsvToMongo {
 	}
 
 	private void saveActivites(String[] columns) {
-		//DBObject activites = new BasicDBObject("activites", columns[]);
+		DBObject activites = new BasicDBObject("activites", columns[5]);
+		DBObject query = new BasicDBObject("numero", columns[2]);
+		DBObject update = new BasicDBObject("$push", new BasicDBObject("activites", activites));
+		this.collection.findAndModify(query, update);
 	}
 
 	private void saveEquipements(String[] columns) {
@@ -54,8 +57,7 @@ public class CsvToMongo {
 			.append("type", columns[7])
 			.append("famille", columns[8])
 			.append("activites", activites);
-		
-		DBObject query = new BasicDBObject("Code INSEE", columns[2]);
+		DBObject query = new BasicDBObject("_id", columns[2]);
 		DBObject update = new BasicDBObject("$push", new BasicDBObject("equipements", equipement));
 		this.collection.findAndModify(query, update);
 	}
