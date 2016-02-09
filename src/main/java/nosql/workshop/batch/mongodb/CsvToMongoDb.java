@@ -1,5 +1,6 @@
 package nosql.workshop.batch.mongodb;
 
+import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
 import com.mongodb.BasicDBObject;
 
 import java.io.*;
@@ -68,7 +69,10 @@ public class CsvToMongoDb {
 		.append("nom", columns[5])
 		.append("_id", columns[4]);
 
-		connection.getCollection(EQUIPEMENTS).update("{_id:"+columns[2]+"}").with("{$push : {"+ACTIVITES+": #}}",object);
+		BasicDBObject pushDat = new BasicDBObject("$push",new BasicDBObject(EQUIPEMENTS,new BasicDBObject("$push",new BasicDBObject(ACTIVITES,object))));
+
+		connection.getDatabase().getCollection(INSTALLATIONS).findAndModify(new BasicDBObject(EQUIPEMENTS,new BasicDBObject("_id",columns[2])),pushDat);
+		//connection.getCollection(EQUIPEMENTS).update("{_id:"+columns[2]+"}").with("{$push : {"+ACTIVITES+": #}}",object);
 		return object;
 
 	}
