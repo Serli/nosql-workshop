@@ -46,7 +46,7 @@ public class InstallationService {
     }
 
     public Installation get(String numero) {
-        return installations.findOne(String.format("{ _id : '%s' }", numero)).as(Installation.class);
+        return installations.findOne("{ _id : # }", numero).as(Installation.class);
     }
 
     public List<Installation> list() {
