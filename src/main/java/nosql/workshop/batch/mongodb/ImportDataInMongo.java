@@ -5,7 +5,10 @@ import com.mongodb.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * @author Marion Bechennec
@@ -48,10 +51,14 @@ public class ImportDataInMongo {
                         .append("location", new BasicDBObject("type", "Point")
                                 .append("coordinates",
                                         Arrays.asList(Double.valueOf(cleanString(column[10])), Double.valueOf(cleanString(column[9])))))
-                        .append("multiCommune", cleanString(column[16]))
-                        .append("nbPlacesParking", cleanString(column[17]))
-                        .append("nbPlacesParkingHandicapes", cleanString(column[18]))
-                        .append("dateMiseAJourFiche", cleanString(column[28]));
+                        .append("multiCommune", "Oui".equals(column[16]))
+                        .append("nbPlacesParking", column[17].isEmpty() ? null : Integer.valueOf(column[17]))
+                        .append("nbPlacesParkingHandicapes", column[18].isEmpty() ? null : Integer.valueOf(column[18]))
+                        .append("dateMiseAJourFiche",
+                            column.length < 29 || column[28].isEmpty() || column[28].length()<10 ? null : Date.from(
+                                LocalDate.parse(column[28].substring(0, 10)).atStartOfDay(ZoneId.of("UTC"))
+                                        .toInstant()));
+
                 collection.save(installation);
             });
     }
