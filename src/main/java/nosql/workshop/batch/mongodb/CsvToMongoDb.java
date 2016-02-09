@@ -35,7 +35,7 @@ public class CsvToMongoDb {
 		} 
 	}
 
-    private static BasicDBObject createObject(String[] columns,String type) {
+    private BasicDBObject createObject(String[] columns,String type) {
         switch (type){
             case INSTALLATIONS : return createInstallationObject(columns);
             case ACTIVITES : return createActiviteObject(columns);
@@ -46,20 +46,33 @@ public class CsvToMongoDb {
         return null;
     }
 
-    private static BasicDBObject createVilleObjet(String[] columns) {
+    private  BasicDBObject createVilleObjet(String[] columns) {
         return null;
     }
 
-    private static BasicDBObject createEquipementObject(String[] columns) {
-        return null;
+    private BasicDBObject createEquipementObject(String[] columns) {
+         BasicDBObject object = new BasicDBObject()
+                .append("_id", columns[4])
+                .append("nom",columns[5])
+                .append("type",columns[7])
+                .append("famille",columns[9]);
+
+        connection.getCollection(INSTALLATIONS).update("{_id:"+columns[2]+"}").with("{$push : {"+EQUIPEMENTS+": #}}",object);
+        return object;
     }
 
-    private static BasicDBObject createActiviteObject(String[] columns) {
-        return null;
+    private BasicDBObject createActiviteObject(String[] columns) {
+        BasicDBObject object =  new BasicDBObject()
+                .append("nom",columns[5])
+                .append("_id",columns[4]);
+
+        connection.getCollection(EQUIPEMENTS).update("{_id:"+columns[2]+"}").with("{$push : {"+ACTIVITES+": #}}",object);
+        return object;
+
     }
 
-    private static BasicDBObject createInstallationObject(String[] columns){
-        return new BasicDBObject()
+    private BasicDBObject createInstallationObject(String[] columns){
+        BasicDBObject object =  new BasicDBObject()
                 .append("_id", columns[1])
                 .append("nom", columns[0])
                 .append("adresse",
@@ -92,6 +105,8 @@ public class CsvToMongoDb {
                                                 .toInstant()
                                 )
                 );
+        connection.getDatabase().getCollection(INSTALLATIONS).insert(object);
+        return object;
     }
 	
 
@@ -107,10 +122,16 @@ public class CsvToMongoDb {
                     .map(line -> line.split(","))
                     .forEach(columns -> {
                         DBObject object = createObject(columns,type);
-                        connection.getDatabase().getCollection(type).insert(object);
                        });
            } catch (IOException e) {
                throw new UncheckedIOException(e);
            }
+    }
+
+
+    public void fillDB(){
+        extractCsv(INSTALLATIONS);
+        extractCsv(EQUIPEMENTS);
+        extractCsv(ACTIVITES);
     }
 }
