@@ -5,21 +5,20 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 
 /**
- * Utilitaire permettant de gérer la connexion à MongoDB
+ * Utilitaire permettant de gérer la connexion à ElasticSearch
  */
 public abstract class ESConnectionUtil {
+
     private ESConnectionUtil() {
     }
 
-    private static JestClient createClient(String esUrlProperty) {
-        String esGivenUri = System.getenv(esUrlProperty);
-        String serverUri = esGivenUri == null ? "http://localhost:9200" : esGivenUri;
-
+    public static JestClient createClient() {
         JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(new HttpClientConfig
-                .Builder(serverUri)
+                .Builder("http://localhost:9200")
                 .multiThreaded(true)
                 .build());
         return factory.getObject();
     }
+
 }
