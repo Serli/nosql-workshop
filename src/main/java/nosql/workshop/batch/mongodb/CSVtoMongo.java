@@ -60,7 +60,7 @@ public class CSVtoMongo {
                 .append("nbPlacesParkingHandicapes", line.get("Nombre total de place de parking handicapés") == null || line.get("Nombre total de place de parking handicapés").isEmpty() ? 0 : Integer.valueOf(line.get("Nombre total de place de parking handicapés")))
                 .append(
                         "dateMiseAJourFiche",
-                        line.size() < 29 || line.get("Date de mise à jour de la fiche installation").isEmpty()
+                        line.get("Date de mise à jour de la fiche installation") == null || line.get("Date de mise à jour de la fiche installation").isEmpty()
                                 ? null :
                                 Date.from(
                                         LocalDate.parse(line.get("Date de mise à jour de la fiche installation").substring(0, 10))
@@ -71,20 +71,22 @@ public class CSVtoMongo {
         collection.insert(document);
     }
 
-       /* for (Map<String, String> line : ReadCVS.run(pathEquipements)) {
-            db.getCollection("people").update(new BasicDBObject()
-                    .append("_id", line.get("EquipementId"))
+       for (Map<String, String> line : ReadCVS.run(pathEquipements)) {
+            collection.update(collection.findOne(line.get("InsNumeroInstall")),
+                    new BasicDBObject("$push",new BasicDBObject("equipements", new BasicDBObject()
+                    .append("numero", line.get("EquipementId"))
                     .append("nom", line.get("EquNom"))
                     .append("type", line.get("EquipementTypeLib"))
-                    .append("famille", line.get("FamilleFicheLib")), db.getCollection("people").findOne());
-        }*/
+                    .append("famille", line.get("FamilleFicheLib")))));
+        }
 
-       /* for (Map<String, String> line : ReadCVS.run(pathActivites)) {
-            db.getCollection("people").update(new BasicDBObject()
-                    .append("_id", line.get("Activité code"))
-                    .append("nom", line.get("Activité libellé")), db.getCollection("people").findOne());
-        }*/
-
+   /*    for (Map<String, String> line : ReadCVS.run(pathActivites)) {
+            collection.update(new BasicDBObject("activites", new BasicDBObject("$elemMatch",
+                    line.get("Numéro de la fiche équipement"))),
+                    new BasicDBObject("$push",new BasicDBObject("activites",
+                            new BasicDBObject("activites.$.nom", line.get("Activité libellé")))));
+        }
+*/
     }
 
 
