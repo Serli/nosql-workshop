@@ -46,6 +46,7 @@ public class InstallationService {
 
     public List<Installation> getInstallationByGeoSearch(float lat, float lng, int distance){
         List<Installation> geoList = new ArrayList<>();
+        installations.ensureIndex("{ 'location' : '2dsphere' }");
         MongoCursor<Installation> cursor = installations.find("{'location': {$near: { $geometry: { type: 'Point', coordinates: [#, #]}, $maxDistance: #}}}", lng, lat, distance).as(Installation.class);
         cursor.forEach(e -> geoList.add(e));
         return geoList;
