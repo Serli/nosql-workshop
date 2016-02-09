@@ -9,17 +9,11 @@ import java.util.List;
  */
 public class Equipement {
 
-    @MongoId
-    private String _id;
     private String numero;
     private String nom;
     private String type;
     private String famille;
     private List<String> activites;
-
-    public String get_id() { return this._id; }
-
-    public void set_id(String _id) { this._id = _id; }
 
     public String getNumero() {
         return this.numero;
