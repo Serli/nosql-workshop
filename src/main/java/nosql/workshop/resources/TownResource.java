@@ -32,6 +32,11 @@ public class TownResource {
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-        return searchService.getLocation(townName);
+        try {
+            return searchService.getLocation(townName);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

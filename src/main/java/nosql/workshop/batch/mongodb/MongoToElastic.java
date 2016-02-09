@@ -35,7 +35,7 @@ public class MongoToElastic {
     public static void main(String[] args) {
 
         MongoToElastic obj = new MongoToElastic();
-        //obj.run();
+        obj.run();
         obj.importCity();
 
     }
@@ -43,7 +43,7 @@ public class MongoToElastic {
     private void importCity() {
 
         BufferedReader br = null;
-        String cvsSplitBy = "\",\"";
+        String cvsSplitBy = ",";
 
         MongoClient mongoClient = new MongoClient();
         DB db = mongoClient.getDB("nosql-workshop");
@@ -54,13 +54,42 @@ public class MongoToElastic {
 
             br = new BufferedReader(new FileReader(townCsv));
 
+            List<Document> documents = new ArrayList<>();
+
             br.lines()
                     .skip(1)
                     .filter(line -> line.length() > 0)
                     .map(line -> line.split(cvsSplitBy))
                     .forEach(column -> {
 
+                        Document obj = new Document("townName", column[1].trim().replace("\"", ""))
+                                .append("id", column[0].trim())
+                                .append(
+                                        "location",
+                                        Arrays.asList(
+                                                Double.valueOf(column[6]),
+                                                Double.valueOf(column[7])
+                                        )
+                                );
+                        documents.add(obj);
+
                     });
+
+            JestClient client = ESConnectionUtil.createClient("");
+
+            Bulk bulk = new Bulk.Builder()
+                    .defaultIndex("towns")
+                    .defaultType("town")
+                    .addAction(getTowns(documents))
+                    .build();
+
+            try {
+                client.execute(bulk);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Importation des villes terminée");
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -77,6 +106,17 @@ public class MongoToElastic {
         }
 
         System.out.println("Done");
+    }
+
+    private static List<Index> getTowns(List<Document> list){
+        List<Index> indexes = new ArrayList<>();
+        for (Document object: list) {
+
+            String id = object.get("id").toString();
+
+            indexes.add(new Index.Builder(object).id(id).build());
+        }
+        return indexes;
     }
 
     public void run(){
