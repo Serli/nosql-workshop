@@ -7,6 +7,7 @@ import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
 
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 /**
@@ -39,12 +40,15 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return installationService.list("nant");
+        return null;
     }
 
     @Get("/geosearch")
-    public List<Installation> geosearch(Context context) {
-        return null;
+    public List<Installation> geoSearch(Context context) {
+        final Double lat = context.query().getDouble("lat");
+        final Double lng = context.query().getDouble("lng");
+        final Integer dist = context.query().getInteger("distance");
+        return installationService.near(lat, lng, dist);
     }
 
     @Get("/stats")

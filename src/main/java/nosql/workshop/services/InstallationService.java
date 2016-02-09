@@ -2,6 +2,7 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.spi.InterceptorBinding;
 import io.searchbox.client.JestClient;
 import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Equipement;
@@ -50,9 +51,22 @@ public class InstallationService {
         return list;
     }
 
-    public List<Installation> list(String search) {
-
-        return null;
+    /**
+     * Locates installations near a given location
+     *
+     * @param lat latitude
+     * @param lng longitude
+     * @param dist max distance from point
+     * @return a list of Installations
+     */
+    public List<Installation> near(double lat, double lng, int dist) {
+        List<Installation> list = new ArrayList<>();
+        installations.ensureIndex("{ location : '2dsphere' } ");
+        final MongoCursor<Installation> cursor = installations.find(
+                "{ location : { $near : { $geometry : { type : 'Point', coordinates : [ #, # ] }, $maxDistance : # } } }",
+                lng, lat, dist).as(Installation.class);
+        cursor.forEach(e -> list.add(e)); // reads the cursor into a list
+        return list;
     }
 
 }
