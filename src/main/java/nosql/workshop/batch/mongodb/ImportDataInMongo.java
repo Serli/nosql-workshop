@@ -22,7 +22,7 @@ public class ImportDataInMongo {
     }
 
     private void insertInstallations() {
-        InputStream is = getClass().getResourceAsStream("../csv/installations.csv");
+        InputStream is = getClass().getResourceAsStream("/batch/csv/installations.csv");
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
         br.lines()
@@ -46,12 +46,12 @@ public class ImportDataInMongo {
                         .append("nbPlacesParking", column[17])
                         .append("nbPlacesParkingHandicapes", column[18])
                         .append("dateMiseAJourFiche", column[28]);
-                collection.insert(installation);
+                collection.save(installation);
             });
     }
 
     private void updateEquipements() {
-        InputStream is = getClass().getResourceAsStream("../csv/equipements.csv");
+        InputStream is = getClass().getResourceAsStream("/batch/csv/equipements.csv");
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
         br.lines()
@@ -80,7 +80,7 @@ public class ImportDataInMongo {
     }
 
     private void updateActivites() {
-        InputStream is = getClass().getResourceAsStream("../csv/activites.csv");
+        InputStream is = getClass().getResourceAsStream("/batch/csv/activites.csv");
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
         br.lines()
