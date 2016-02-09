@@ -194,7 +194,7 @@ public class ImportCSV {
 						"equipements",
 						new BasicDBObject(
 								"$elemMatch",
-								new BasicDBObject("numero", getDataOrElse(data, 2, ""))
+								new BasicDBObject("numero", getDataOrElse(data, 2, "").replace(" ", ""))
 								)
 						);
 
@@ -220,7 +220,7 @@ public class ImportCSV {
 	}
 
 	private static String getDataOrElse(String[] data, int index, String or){
-		return index < data.length ? data[index].replace(" ", "") : or;
+		return index < data.length ? data[index] : or;
 	}
 
 }

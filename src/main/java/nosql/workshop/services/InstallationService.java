@@ -3,10 +3,14 @@ package nosql.workshop.services;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 
 import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+
+import org.bson.BasicBSONDecoder;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
@@ -51,7 +55,7 @@ public class InstallationService {
     }
     
     public List<Installation> list() throws IOException {
-    	MongoCursor<Installation> all = installations.find().as(Installation.class);
+    	MongoCursor<Installation> all = this.installations.find().as(Installation.class);
     	List<Installation> list = new ArrayList<Installation>();
     	try {
 			while(all.hasNext()) {
@@ -69,15 +73,30 @@ public class InstallationService {
     	return installation;
     }
     
-    public List<Installation> search(Context context) {
-    	String query = context.get("query");
+    public List<Installation> search(Context context) throws IOException {
+    	String query = context.query().get("query");
     	//List<Installation> installations =
-    	List<Installation> list = Lists.newArrayList(
-    			(Iterator<Installation>)
-    			this.installations.aggregate("{$project:{sender:1}}")
-    			.and("{$match:{tags:'#'}}", query)
-    			.and("{$limit:10}")
-    			.as(Installation.class));
+//    	List<Installation> list = Lists.newArrayList(
+//    			(Iterator<Installation>)
+    	MongoCursor<Installation> all = this.installations.find("{"
+    			+ "$text: {"
+    			+ "$search : #,"
+    			+ "$language : \"french\""
+    			+ "}"
+    			+ "}"
+    			+ "}"
+    			+ "}", query).projection("{score:{$meta: \"textScore\"}}").sort("{score:{$meta: \"textScore\"}}").limit(10).as(Installation.class);
+
+    	
+    	List<Installation> list = new ArrayList<Installation>();
+    	try {
+			while(all.hasNext()) {
+				Installation inst = all.next();
+				list.add(inst);
+			}
+		} finally {
+			all.close();
+		}
         return list;
     }
 }

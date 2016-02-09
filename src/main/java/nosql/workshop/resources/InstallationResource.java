@@ -41,7 +41,7 @@ public class InstallationResource {
     }
 
     @Get("/search")
-    public List<Installation> search(Context context) {
+    public List<Installation> search(Context context) throws IOException {
         return this.installationService.search(context);
     }
 
