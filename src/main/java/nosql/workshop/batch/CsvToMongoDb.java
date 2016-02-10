@@ -79,6 +79,7 @@ public class CsvToMongoDb {
                     .skip(1)
                     .filter(line -> line.length() > 0)
                     .map(line -> line.split("\",\""))
+                    .filter(line -> !line[5].isEmpty()) // Do not insert if activity name is empty
                     .forEach(columns -> {
                         dbCollection.updateOne( // we add the parsed activity to its equipment
                                 new Document().append("equipements",
