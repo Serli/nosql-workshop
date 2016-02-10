@@ -3,6 +3,8 @@ package nosql.workshop.model;
 
 import org.jongo.marshall.jackson.oid.MongoId;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +14,7 @@ import java.util.List;
 public class Installation {
 
     @MongoId
+    @SerializedName("id")
     private String _id;
     private String nom;
     private Adresse adresse;
