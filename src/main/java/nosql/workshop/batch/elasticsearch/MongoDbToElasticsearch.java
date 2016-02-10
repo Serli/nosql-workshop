@@ -64,6 +64,7 @@ public class MongoDbToElasticsearch {
     private static Index createIndex(DBObject object){
         Map<String, Object> source = new HashMap<>();
         String id = object.get("_id").toString();
+        object.put("id", object.get("_id"));
         object.removeField("_id");
         source.put("installation", object);
         return new Index.Builder(object).id(id).build();
