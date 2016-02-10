@@ -10,6 +10,10 @@ import com.mongodb.BasicDBObject;
 import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.Installation.Adresse;
+import nosql.workshop.model.Installation.Location;
+import nosql.workshop.model.stats.Average;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 
 import org.bson.BasicBSONDecoder;
@@ -21,6 +25,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -134,24 +139,37 @@ public class InstallationService {
 	}
 	
 	public InstallationsStats stats() throws IOException {
-		MongoCursor<Installation> all = this.installations.find().as(Installation.class);
-    	List<Installation> list = new ArrayList<Installation>();
-    	try {
-			while(all.hasNext()) {
-				Installation inst = all.next();
-				list.add(inst);
-			}
-		} finally {
-			all.close();
-		}
-    	
     	InstallationsStats stats = new InstallationsStats();
-    	stats.setTotalCount(list.size());
     	
-    	this.installations.aggregate("{$project:{sender:1}}")
-        	.and("{$match:{tags:'read'}}")
-        	.and("{$limit:10}")
-        	.as(Installation.class);
+    	Iterator<CountByActivity> ite = this.installations.aggregate("{$group: { _id: null, total : {$sum : 1}}}").as(CountByActivity.class);
+    	while(ite.hasNext()) {
+    		CountByActivity count = ite.next();
+    		stats.setTotalCount(count.getTotal());
+    	}
+
+    	ite = this.installations.aggregate("{ $unwind : \"$equipements\" }")
+    			.and("{ $unwind : \"$equipements.activites\" }")
+    			.and("{ $group : { _id : \"$equipements.activites\", total : {$sum : 1}}}")
+    			.and("{ $project : { _id : 0, activite : \"$_id\", total : 1 }}")
+    			.as(CountByActivity.class);
+    	List<CountByActivity> listAct = new ArrayList<CountByActivity>();
+    	while(ite.hasNext()) {
+    		CountByActivity countAct = ite.next();
+    		listAct.add(countAct);
+    	}
+    	stats.setCountByActivity(listAct);
+
+    	Iterator<Installation> iteInst = this.installations.aggregate("{ $project : { _id : 1, nom : 1, adresse : 1, multiCommune : 1, nbPlacesParking : 1, nbPlacesParkingHandicapes : 1, dateMiseAJourFiche : 1, equipements : 1, taille : {$size : \"$equipements\"} }}")
+    			.and("{ $sort: { \"taille\" : -1 } }")
+    			.as(Installation.class);
+    	Installation inst = iteInst.next();
+    	stats.setInstallationWithMaxEquipments(inst);
+    	
+    	Iterator<Average> iteAve = this.installations.aggregate("{ $group : { _id : null, avgSize : { $avg: {$size : \"$equipements\"} } } }")
+    			.and("{ $project : { _id : 0, average : \"$avgSize\" }}")
+    			.as(Average.class);
+    	Average ave = iteAve.next();
+    	stats.setAverageEquipmentsPerInstallation(ave.getAverage());
     	
         return stats;
     }
