@@ -50,18 +50,6 @@ public class SearchService {
 
         JestClient client = ESConnectionUtil.createClient("MONGOLAB_URI");
 
-        String query2 = "{\n"
-                + "    \"query\": {\n"
-                + "        \"filtered\" : {\n"
-                + "            \"query\" : {\n"
-                + "                \"query_string\" : {\n"
-                + "                    \"query\" : \"java\"\n"
-                + "                }\n"
-                + "            }"
-                + "        }\n"
-                + "    }\n"
-                + "}";
-
         String query = "{\"suggest\" : {\n"
                 + "         \"town-suggest\" : {\n"
                 + "             \"text\" : \"n\",\n"
@@ -119,14 +107,6 @@ public class SearchService {
 
         JestClient client = ESConnectionUtil.createClient("");
 
-
-        String querySearch2 = "{\"query\": {\n"
-                + "     \"match\": {\n"
-                + "         \"nom\": \"" + query + "\"\n"
-                + "     }\n"
-                + "}}";
-
-
         String querySearch = "{"
                 + " \"query\": {\n"
                 + "     \"multi_match\": {\n"
@@ -144,13 +124,11 @@ public class SearchService {
         SearchResult result = client.execute(searchBuilder.build());
 
         List<SearchResult.Hit<Installation, Void>> hits = result.getHits(Installation.class);
-        Stream<Installation> installationStream = hits.stream().map(installation -> installation.source);
-        return Lists.newArrayList(installationStream.iterator());
-        /** if (!hits.isEmpty()) {
-         for (SearchResult.Hit<Installation, Void> hit : hits) {
-         installations.add(hit.source);
-         }
-         }
-         return installations;**/
+        if (!hits.isEmpty()) {
+            for (SearchResult.Hit<Installation, Void> hit : hits) {
+                installations.add(hit.source);
+            }
+        }
+         return installations;
     }
 }
