@@ -1,6 +1,7 @@
 package nosql.workshop.model;
 
 
+import com.mongodb.BasicDBObject;
 import org.jongo.marshall.jackson.oid.MongoId;
 
 import java.util.Date;
@@ -149,6 +150,7 @@ public class Installation {
 
         private String type;
         private double[] coordinates;
+
 
         public String getType() {
             return type;
