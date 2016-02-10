@@ -63,5 +63,4 @@ public class InstallationService {
         String query = "{_id : '"+id+"'}";
         return jongo.getCollection("installations").findOne(query).as(Installation.class);
     }
-
 }

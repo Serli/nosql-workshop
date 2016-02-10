@@ -1,4 +1,4 @@
-package nosql.workshop;
+package nosql.workshop.batch.mongodb;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
