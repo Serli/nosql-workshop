@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 
+import org.jongo.Find;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
@@ -32,7 +33,10 @@ public class InstallationService {
 	}
 
 	public Installation random() {
-		return installations.findOne().as(Installation.class);
+		long n = installations.count();
+		MongoCursor<Installation> all = installations.find().limit(1).skip((int)Math.floor(Math.random()*n)).as(Installation.class);
+		return all.count() > 0 ? all.next() : null;
+		//return installations.findOne().as(Installation.class);
 	}
 
 	public List<Installation> list() {
