@@ -3,18 +3,28 @@ package nosql.workshop.services;
 import com.google.common.collect.Iterators;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.searchbox.client.JestResult;
+import io.searchbox.core.Search;
+import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
+import nosql.workshop.model.suggest.TownSuggest;
 import org.jongo.FindOne;
 import org.jongo.MongoCollection;
 import net.codestory.http.Context;
 
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -71,6 +81,43 @@ public class InstallationService {
         installations.ensureIndex("{ location : '2dsphere' } ");
         return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + latitude + ", " + longitude + " ]}, $maxDistance : " + dist + "}}}").as(Installation.class).iterator());
 
+    }
+
+    public List<Installation> search(Context context) throws IOException {
+
+        String query = "{\n" +
+                "        \"query\": {\n"+
+                "           \"multi_match\": {\n"+
+                "               \"query\": \"" + context.query().get("query") + "\",\n" +
+                "                    \"fields\": [\"_all\"] \n"+
+                "               }\n"+
+                "           }\n" +
+                "       }\n" +
+                "}";
+        Search search = (Search) new Search.Builder(query)
+                .addIndex("installations")
+                .addType("installation")
+                .build();
+
+        JestResult result = ESConnectionUtil.createClient("").execute(search);
+
+
+        List<Installation> installations = new ArrayList<>();
+
+       installations = result.getSourceAsObjectList(Installation.class);
+        if(!installations.isEmpty() && installations != null){
+            JsonObject object = result.getJsonObject();
+            JsonArray hits = object.get("hits").getAsJsonObject().get("hits").getAsJsonArray();
+            JsonObject hit = hits.get(0).getAsJsonObject();
+            JsonObject jsonObjectInstallation = hit.getAsJsonObject("_source");
+            JsonObject jsonObjectLocation = jsonObjectInstallation.getAsJsonObject("location");
+
+            JsonArray jsonArrayCoordinates = jsonObjectLocation.getAsJsonArray("coordinates");
+
+           double[] coordinates = {jsonArrayCoordinates.get(0).getAsDouble(), jsonArrayCoordinates.get(1).getAsDouble()};
+            installations.get(0).getLocation().setCoordinates(coordinates);
+        }
+        return installations;
     }
 
 

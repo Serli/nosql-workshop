@@ -7,6 +7,7 @@ import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -40,9 +41,9 @@ public class InstallationResource {
     }
 
     @Get("/search")
-    public List<Installation> search(Context context) {
-        System.out.println(context.query().get("query"));
-        return null;
+    public List<Installation> search(Context context) throws IOException {
+        System.out.println(context.query().getBoolean(""));
+        return installationService.search(context);
 
     }
 
