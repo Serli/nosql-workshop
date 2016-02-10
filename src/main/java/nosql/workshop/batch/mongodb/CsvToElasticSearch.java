@@ -19,14 +19,14 @@ import java.util.Map;
  */
 public class CsvToElasticSearch {
 
-    public static final String COL_VILLES = "villes";
+    public static final String COL_VILLES = "towns";
 
     public static void main(String[] args) {
         JestClient client = ESConnectionUtil.createClient("");
 
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex(COL_VILLES)
-                .defaultType("ville")
+                .defaultType("town")
                 .addAction(importCitiesFromCSVToElastic())
                 .build();
         try {
@@ -51,8 +51,8 @@ public class CsvToElasticSearch {
                     coord.add(Double.parseDouble(getColumnValue(columns[6])));
                     coord.add(Double.parseDouble(getColumnValue(columns[7])));
                     Map<String, Object> source = new HashMap<String, Object>();
-                    source.put("nom", getColumnValue(columns[2]));
-                    source.put("coord", coord);
+                    source.put("townName", getColumnValue(columns[2]));
+                    source.put("location", coord);
                     indexes.add(new Index.Builder(source).id(columns[0]).build());
                 });
         return indexes;
