@@ -37,7 +37,7 @@ public class SearchService {
 
     public List<Installation> search(){
         JestClient jestClient = ESConnectionUtil.createClient("");
-        
+
         return null;
     }
 }
