@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class SearchService {
 
-    public Double[] getLocation(String townName) throws IOException{
+    public Double[] getLocation(String townName) throws IOException {
         JestClient client = ESConnectionUtil.createClient("");
 
         String query = "{ \"query\": {\"match\": {\"name\": \"" + townName + "\"}}}";
@@ -30,16 +30,13 @@ public class SearchService {
         JsonObject object = result.getJsonObject();
 
         JsonArray hits = object.get("hits").getAsJsonObject().get("hits").getAsJsonArray();
-        if(hits.size() > 0){
+        if (hits.size() > 0) {
             JsonObject firstHit = hits.get(0).getAsJsonObject();
             JsonObject town = firstHit.get("_source").getAsJsonObject();
             JsonArray location = town.get("location").getAsJsonArray();
             Double[] ret = {location.get(0).getAsDouble(), location.get(1).getAsDouble()};
             return ret;
-        }
-        else {
-            return null;
-        }
+        } else return null;
     }
 
     public List<Installation> search(String keyword) throws IOException {
