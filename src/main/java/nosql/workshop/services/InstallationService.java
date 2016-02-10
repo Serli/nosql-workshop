@@ -50,15 +50,9 @@ public class InstallationService {
     }
 
     public Installation random() {
-        // FIXME : bien sûr ce code n'est pas le bon ... peut être quelque chose comme installations.findOne()
-        Installation installation = this.installations.findOne().as(Installation.class);
-//        installation.setNom("Mon Installation");
-//        installation.setEquipements(Arrays.asList(new Equipement()));
-//        installation.setAdresse(new Adresse());
-//        Location location = new Location();
-//        location.setCoordinates(new double[]{3.4, 3.2});
-//        installation.setLocation(location);
-        return installation;
+    	long nombre = this.installations.count();
+        MongoCursor<Installation> installation = this.installations.find().skip((int) (Math.random()*nombre)).as(Installation.class);
+        return installation.next();
     }
     
     public List<Installation> list() throws IOException {
@@ -82,9 +76,7 @@ public class InstallationService {
     
     public List<Installation> search(Context context) throws IOException {
     	String query = context.query().get("query");
-    	//List<Installation> installations =
-//    	List<Installation> list = Lists.newArrayList(
-//    			(Iterator<Installation>)
+
     	MongoCursor<Installation> all = this.installations.find("{"
     			+ "$text: {"
     			+ "$search : #,"
@@ -142,10 +134,8 @@ public class InstallationService {
     	InstallationsStats stats = new InstallationsStats();
     	
     	Iterator<CountByActivity> ite = this.installations.aggregate("{$group: { _id: null, total : {$sum : 1}}}").as(CountByActivity.class);
-    	while(ite.hasNext()) {
-    		CountByActivity count = ite.next();
-    		stats.setTotalCount(count.getTotal());
-    	}
+    	CountByActivity count = ite.next();
+    	stats.setTotalCount(count.getTotal());
 
     	ite = this.installations.aggregate("{ $unwind : \"$equipements\" }")
     			.and("{ $unwind : \"$equipements.activites\" }")
