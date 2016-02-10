@@ -10,11 +10,20 @@ import net.codestory.http.Context;
 import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.suggest.TownSuggest;
+import org.elasticsearch.action.suggest.SuggestRequestBuilder;
+import org.elasticsearch.action.suggest.SuggestResponse;
+import org.elasticsearch.common.collect.Lists;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Search service permet d'encapsuler les appels vers ElasticSearch
@@ -63,37 +72,32 @@ public class SearchService {
    }
 
     public List<Installation> search(Context context) {
+        String q = context.query().get("query");
+
         JestClient client = ESConnectionUtil.createClient("");
-
-      /*  String query = "{\"query\": {\n" +
-                "            \"multi_match\": {\n" +
-                "                \"query\": \"Carquefou\",\n" +
-                "                        \"fields\": [\"_all\"]\n" +
-                "            }\n" +
+        String query = "{\n" +
+                "    \"query\": {\n" +
+                "        \"multi_match\": {\n" +
+                "           \"query\": \""+q+"\",\n" +
+                "           \"fields\": [\"_all\"]\n" +
                 "        }\n" +
-                "    }'}";
+                "    }\n" +
+                "}";
 
-        Search search = (Search) new Search.Builder(query)
-                .addIndex("installations")
-                .addType("installation")
-                .build();
+        Search search = new Search.Builder(query).addIndex("installations").addType("installation").build();
 
-        JestResult result = null;
         try {
-            result = client.execute(search);
+            SearchResult searchResult = client.execute(search);
+            if (searchResult.isSucceeded()) {
+                List<SearchResult.Hit<Installation, Void>> hits = searchResult.getHits(Installation.class);
+                if (!hits.isEmpty()) {
+                    List<Installation> listInstallation = hits.stream().map(sr -> sr.source).collect(Collectors.toList());
+                    return listInstallation;
+                }
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
-        JsonObject object = result.getJsonObject();
-        JsonArray hits = object.get("hits").getAsJsonObject().get("hits").getAsJsonArray();
-        if(hits.size() > 0){
-            String firstHit = hits.get(0).getAsString();
-            return null;
-        }
-        else {
-            return null;
-        }*/
         return null;
     }
 
