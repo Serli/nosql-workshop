@@ -48,8 +48,8 @@ public class CsvToMongoDb {
                                                 .append("coordinates",
                                                         Arrays.asList(Double.valueOf(columns[9]), Double.valueOf(columns[10]))))
                                 .append("multiCommune", "Oui".equals(columns[16]))
-                                .append("nbPlacesParking", columns[17])
-                                .append("nbPlacesParkingHandicapes", columns[18])
+                                .append("nbPlacesParking", Integer.valueOf(columns[17]))
+                                .append("nbPlacesParkingHandicapes", Integer.valueOf(columns[18]))
                                 .append(
                                         "dateMiseAJourFiche",
                                         columns[28] == null || columns[28].isEmpty() || columns[28].length() <= 9
