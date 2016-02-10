@@ -22,5 +22,9 @@ import java.util.stream.Collectors;
  * Search service permet d'encapsuler les appels vers ElasticSearch
  */
 public class SearchService {
-
+	
+	public List<TownSuggest> suggest(String text) {
+		
+        return null;
+    }
 }
