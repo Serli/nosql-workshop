@@ -33,25 +33,11 @@ public class SearchService {
 
     public List<Installation> search(Context context) throws IOException {
 
-        JestClient client = ESConnectionUtil.createClient("");
-
         String q = context.get("query");
 
-        String query = "{\n" +
-                " \"query\": {\n" +
-                "     \"multi_match\": {\n" +
-                "         \"query\": \"" + q + "\",\n" +
-                "         \"fields\": [\"_all\"]\n" +
-                "       }\n" +
-                "   }\n" +
-                "}";
+        String query = "{\"query\": {\"multi_match\": {\"query\": \""+q+"\", \"fields\": [\"_all\"] }}}";
 
-        Search search = new Search.Builder(query)
-                .addIndex("installations")
-                .addType("installation")
-                .build();
-
-        SearchResult searchResult = client.execute(search);
+        SearchResult searchResult = this.executeSearch(query, "installation");
         List<SearchResult.Hit<Installation, Void>> hits = searchResult.getHits(Installation.class);
         Stream<Installation> installationStream = hits.stream().map(installation -> installation.source);
         return Lists.newArrayList(installationStream.iterator());
@@ -59,26 +45,12 @@ public class SearchService {
     }
 
     public List<TownSuggest> suggest(String text) throws IOException {
+
         List<TownSuggest> list = new ArrayList<>();
 
-        JestClient client = ESConnectionUtil.createClient("");
+        String query = "{\"query\": {\"wildcard\": {\"townName\": {\"value\": \""+text +"*\"}}}}";
 
-        String query = "{\n" +
-                "        \"query\": {\n"+
-                "           \"wildcard\": {\n"+
-                "               \"townName\": {\n"+
-                "                   \"value\": \"" + text + "*\" \n" +
-                "               }\n"+
-                "           }\n" +
-                "       }\n" +
-                "}";
-
-        Search search = (Search) new Search.Builder(query)
-                .addIndex("towns")
-                .addType("town")
-                .build();
-
-        SearchResult searchResult = client.execute(search);
+        SearchResult searchResult = this.executeSearch(query, "town");
         List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
         Stream<TownSuggest> townSuggestStream = hits.stream().map(townHit -> townHit.source);
         return Lists.newArrayList(townSuggestStream.iterator());
@@ -87,21 +59,9 @@ public class SearchService {
 
     public Double[] getLocation(String townName) throws IOException {
 
-        JestClient client = ESConnectionUtil.createClient("");
-        String query = "{\n" +
-                " \"query\": {\n" +
-                "     \"match\": {\n" +
-                "         \"townName\": \"" + townName + "\"\n" +
-                "       }\n" +
-                "   }\n" +
-                "}";
+        String query = "{\"query\": {\"match\": {\"townName\": \""+townName+"\"}}}";
 
-        Search search = new Search.Builder(query)
-                .addIndex("towns")
-                .addType("town")
-                .build();
-
-        SearchResult searchResult = client.execute(search);
+        SearchResult searchResult = this.executeSearch(query, "town");
         List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
         if (!hits.isEmpty()) {
             SearchResult.Hit<TownSuggest, Void> townHit = hits.get(0);
@@ -110,6 +70,19 @@ public class SearchService {
         else {
             return null;
         }
+
+    }
+
+    private SearchResult executeSearch(String query, String type) throws IOException {
+
+        JestClient client = ESConnectionUtil.createClient("");
+
+        Search search = new Search.Builder(query)
+                .addIndex(type + "s")
+                .addType(type)
+                .build();
+
+        return client.execute(search);
 
     }
 }

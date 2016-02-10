@@ -32,11 +32,10 @@ public class MongoToElastic {
 
     MongoCollection<Document> coll;
 
-    public static void main(String[] args) {
+    public void run(){
 
-        MongoToElastic obj = new MongoToElastic();
-        obj.run();
-        obj.importCity();
+        this.importMongoToElastic();
+        this.importCity();
 
     }
 
@@ -119,7 +118,12 @@ public class MongoToElastic {
         return indexes;
     }
 
-    public void run(){
+
+
+    //IMPORT DE MONGO VERS ELASTIC SEARCH
+
+
+    public void importMongoToElastic(){
 
         MongoClient mongoClient = new MongoClient();
         DB db = mongoClient.getDB("nosql-workshop");
@@ -139,6 +143,7 @@ public class MongoToElastic {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     public static Collection<Index> getListBulkable(DBCursor cursor){
@@ -152,6 +157,7 @@ public class MongoToElastic {
     private static Index createIndex(DBObject object){
         String id = object.get("_id").toString();
         object.removeField("_id");
+        object.put("id", id);
         object.removeField("dateMiseAJourFiche");
         return new Index.Builder(object).id(id).build();
     }
