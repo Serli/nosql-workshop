@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import nosql.workshop.services.InstallationService;
 import nosql.workshop.services.MongoDB;
 import nosql.workshop.services.SearchService;
+import nosql.workshop.services.TownService;
 
 
 /**
@@ -16,5 +17,6 @@ public class ApplicationModule extends AbstractModule {
         bind(MongoDB.class);
         bind(InstallationService.class);
         bind(SearchService.class);
+        bind(TownService.class);
     }
 }

@@ -26,6 +26,8 @@ public class Mongo2ElasticSearch {
 
         JestClient client = ESConnectionUtil.createClient("");
 
+        //String mapping = "{\"mappings\": {\"installation\": {\"properties\": {\"location\": {\"properties\": {\"coordinates\": {\"type\": \"geo_point\"}}}}}}}";
+
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
                 .defaultType("installation")
@@ -47,10 +49,11 @@ public class Mongo2ElasticSearch {
         return list;
     }
 
-    private static Index createIndex(DBObject object) {
-        String id = object.get("_id").toString();
-        object.removeField("_id");
-        object.removeField("dateMiseAJourFiche");
-        return new Index.Builder(object).id(id).build();
+    private static Index createIndex(DBObject installation) {
+        String id = installation.get("_id").toString();
+        installation.removeField("_id");
+        installation.put("id", id);
+        installation.removeField("dateMiseAJourFiche");
+        return new Index.Builder(installation).id(id).build();
     }
 }

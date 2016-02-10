@@ -3,7 +3,7 @@ package nosql.workshop.resources;
 import com.google.inject.Inject;
 import net.codestory.http.annotations.Get;
 import nosql.workshop.model.suggest.TownSuggest;
-import nosql.workshop.services.SearchService;
+import nosql.workshop.services.TownService;
 
 import java.util.List;
 
@@ -12,18 +12,20 @@ import java.util.List;
  */
 public class TownResource {
 
+    private final TownService townService;
 
     @Inject
-    public TownResource() {
+    public TownResource(TownService townService) {
+        this.townService = townService;
     }
 
     @Get("suggest/:text")
     public List<TownSuggest> suggest(String text) {
-        return null;
+        return townService.suggest(text);
     }
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-        return null;
+        return townService.getLocation(townName);
     }
 }

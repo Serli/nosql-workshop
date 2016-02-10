@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
+import net.codestory.http.Context;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
@@ -12,10 +13,10 @@ import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
+
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import net.codestory.http.Context;
 
 
 /**
