@@ -23,55 +23,44 @@ import com.google.inject.Inject;
  */
 public class SearchService {
 
+	private JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
+
 
 	public List<TownSuggest> suggest(String text) {
-		//Configuration du client
-		/*JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
 		List<TownSuggest> aRetourner = new ArrayList<TownSuggest>();
+		//Searching
+		String query = "{\n" +
+				"    \"query\": {\n" +
+				"        \"filtered\" : {\n" +
+				"            \"query\" : {\n" +
+				"                \"query_string\" : {\n" +
+				"                    \"query\" : \""+text+"\"\n" +
+				"                }\n" +
+				"            }\n"+
+				"        }\n" +
+				"    }\n" +
+				"}";
+		Search search = (Search) new Search.Builder(query)
+				.addIndex("towns")
+				.addType("town")
+				.build();
+		JestResult result = null;
 		try {
-			//Indexing
-			client.execute(new CreateIndex.Builder("installations").build());
-			
-			
-			List<Installation> source = new ArrayList<Installation>();
-			MongoCursor<Installation> cursor = this.installations.find().as(Installation.class);
-			while (cursor.hasNext()) {
-				source.add(cursor.next());
-			}
-			
-			
-			Index index = new Index.Builder(source).index("installations").type("intallation").build();
-			client.execute(index);
-			//Searching
-			String query = "{\n" +
-					"    \"query\": {\n" +
-					"        \"filtered\" : {\n" +
-					"            \"query\" : {\n" +
-					"                \"query_string\" : {\n" +
-					"                    \"query\" : \""+text+"\"\n" +
-					"                }\n" +
-					"            }\n"+
-					"        }\n" +
-					"    }\n" +
-					"}";
-			Search search = (Search) new Search.Builder(query)
-					.addIndex("installations")
-					.addType("installation")
-					.build();
-			JestResult result = client.execute(search);
-			
-			List<Installation> installationsAfterResult = result.getSourceAsObjectList(Installation.class);
-			//for(int i = 0;installationsAfterResult.leng)
-				
+			result = client.execute(search);
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return aRetourner;
-	}
 
-	public Double[] getLocation(String townName) {
-		// TODO Auto-generated method stub*/
-		return null;
-	}
+		List<Installation> installationsAfterResult = result.getSourceAsObjectList(Installation.class);
+		//for(int i = 0;installationsAfterResult.leng)
+
+		return aRetourner;
+}
+
+public Double[] getLocation(String townName) {
+	// TODO Auto-generated method stub
+	return null;
+}
 
 }
