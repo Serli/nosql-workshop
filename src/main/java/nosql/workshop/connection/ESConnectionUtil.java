@@ -11,13 +11,14 @@ public abstract class ESConnectionUtil {
     private ESConnectionUtil() {
     }
 
-    private static JestClient createClient(String esUrlProperty) {
+    public static JestClient createClient(String esUrlProperty) {
         String esGivenUri = System.getenv(esUrlProperty);
         String serverUri = esGivenUri == null ? "http://localhost:9200" : esGivenUri;
 
         JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(new HttpClientConfig
                 .Builder(serverUri)
+                .readTimeout(600000)
                 .multiThreaded(true)
                 .build());
         return factory.getObject();

@@ -1,10 +1,19 @@
 package nosql.workshop.resources;
 
 import com.google.inject.Inject;
+import io.searchbox.client.JestClient;
 import net.codestory.http.annotations.Get;
 import nosql.workshop.model.suggest.TownSuggest;
+import nosql.workshop.services.InstallationService;
+import nosql.workshop.services.MongoDB;
 import nosql.workshop.services.SearchService;
+import org.elasticsearch.action.suggest.SuggestRequestBuilder;
+import org.elasticsearch.action.suggest.SuggestResponse;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
+import org.jongo.MongoCollection;
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
@@ -12,18 +21,21 @@ import java.util.List;
  */
 public class TownResource {
 
+    private final SearchService searchService;
 
     @Inject
-    public TownResource() {
+    public TownResource(SearchService searchService) {
+
+            this.searchService = searchService;
     }
 
     @Get("suggest/:text")
     public List<TownSuggest> suggest(String text) {
-        return null;
+        return searchService.suggest(text);
     }
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-        return null;
+        return searchService.getLocation(townName);
     }
 }
