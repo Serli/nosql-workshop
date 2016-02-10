@@ -6,10 +6,12 @@ import com.google.inject.Singleton;
 import net.codestory.http.Query;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.MostEquipedInstallation;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 
 import org.elasticsearch.common.collect.Lists;
+import org.jongo.Aggregate;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
@@ -84,7 +86,7 @@ public class InstallationService {
 		long count = installations.count();
 		Iterator<Installation> inst = installations.find().as(Installation.class);
 		List<Installation> list = Lists.newArrayList(inst);
-		for(Installation i : list){
+		/*for(Installation i : list){
 			int equipementSize = i.getEquipements().size();
 			equipementCount+=equipementSize;
 			if(max < equipementSize){
@@ -93,7 +95,7 @@ public class InstallationService {
 			}
 
 
-			for(Equipement e : i.getEquipements()){
+			/*for(Equipement e : i.getEquipements()){
 				if(e != null && e.getActivites()!= null){
 					for(String activity : e.getActivites()){
 						incCountByActivity(activity);
@@ -106,37 +108,49 @@ public class InstallationService {
 						else{
 							countByActivities.add(temp.increment());
 						}*/
-					}
+					/*}
 				}
-			}
-		}
-		double averageEquipements = Double.valueOf(equipementCount)/Double.valueOf(count);
-		Installation instWithMaxEquip = get(maxId);
+			}*/
+		//}
+		Iterator<MostEquipedInstallation> it= installations.aggregate(
+				  "{$match:{\"equipements\": {$exists:true}}}")
+				  .and("{$unwind:\"$equipements\"}")
+				  .and("{$group:{_id:\"$_id\", count:{$sum:1}}}")
+				  .and("{$sort: {count:-1}}")
+				  .and("{$limit: 1}")		
+		.as(MostEquipedInstallation.class);
+		MostEquipedInstallation mostEquiped = it.next();
+		System.out.println(mostEquiped.get_id());
+		
+		Iterator<Object> itEquip = installations.aggregate(
+				"{$match:{\"equipements\":{$exists:true}}}")
+				.and("{$unwind:\"$equipements\"}")
+				.as(Object.class);
+		
+		Iterator<CountByActivity> countbyActivitiesIt = installations.aggregate(
+						"{$match: {\"equipements.activites\":{$exists : true}}}")
+						.and("{$unwind: \"$equipements\"}")
+						.and("{$unwind: \"$equipements.activites\"}")
+						.and("{$group: {_id:\"$equipements.activites\", total: {$sum:1}}}")
+						.and("{$project:{_id:0, activite:\"$_id\", total:1}}")
+						.and("{$sort: {total: -1}}")
+			   
+				.as(CountByActivity.class);
+		ArrayList<CountByActivity> activities = Lists.newArrayList(countbyActivitiesIt);
+		
+		double averageEquipements = Double.valueOf(Lists.newArrayList(itEquip).size())/Double.valueOf(count);
+		Installation instWithMaxEquip = get(mostEquiped.get_id());
 
 		InstallationsStats ret = new InstallationsStats();
 		ret.setAverageEquipmentsPerInstallation(averageEquipements);
-		
-		ArrayList<CountByActivity> counts = new ArrayList<CountByActivity>(activitiesCounts.values());
-		Collections.sort(counts);
-		ret.setCountByActivity(counts);
+		ret.setCountByActivity(activities);
 		
 		ret.setTotalCount(count);
 		ret.setInstallationWithMaxEquipments(instWithMaxEquip);
 		return ret;
 	}
 
-	public CountByActivity getCountByActivity(String activity){
-		if(activitiesCounts.containsKey(activity)){
-			return activitiesCounts.get(activity);
-		}
-		else{
-			CountByActivity ret = new CountByActivity();
-			ret.setActivite(activity);
-			ret.setTotal(0);
-			return ret;
-		}
-	}
-	public void incCountByActivity(String activity){
+	/*public void incCountByActivity(String activity){
 		if(activitiesCounts.containsKey(activity)){
 			activitiesCounts.get(activity).setTotal(activitiesCounts.get(activity).getTotal()+1);
 		}else{
@@ -145,5 +159,5 @@ public class InstallationService {
 			ret.setTotal(1);
 			activitiesCounts.put(activity, ret);
 		}
-	}
+	}*/
 }
