@@ -20,6 +20,7 @@ import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.json.JSONArray;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,15 +73,15 @@ public class SearchService {
         try {
             SearchResult result = elasticClient.execute(research);
             JsonObject hits = result.getJsonObject().get("hits").getAsJsonObject();
-            if (hits.get("total").getAsInt() >= 1) {
+            if (hits.get("total").getAsInt() == 0) {
+                return null;
+            } else {
                 JsonObject hit = hits.get("hits").getAsJsonArray().get(0).getAsJsonObject().get("_source").getAsJsonObject();
                 Double[] location = {hit.get("x").getAsDouble(), hit.get("y").getAsDouble()};
                 return location;
-            } else {
-                return null;
             }
         } catch (IOException e) {
-            return null;
+            throw new UncheckedIOException(e);
         }
     }
 
