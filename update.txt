@@ -1,0 +1,13 @@
+String equipementId = columns[2].trim();
+BasicDBObject searchQuery = new BasicDBObject(
+	"equipements" , 
+	new BasicDBObject( 
+		"$elemmatch",
+		new BasicDBObject("numero",equipmentId)));
+
+String activite = columns[5];
+BasicDBObject updateQuery = new BasicDBOject(
+	"$push",
+	new BasicDBObject("equipements.$.activites",activite));
+
+coll.update(searchquery,updatequery);
