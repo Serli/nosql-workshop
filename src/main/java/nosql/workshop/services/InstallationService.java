@@ -81,6 +81,7 @@ public class InstallationService {
                 .and("{$unwind: '$equipements.activites'}")
                 .and("{$group: {_id: '$equipements.activites', total:{$sum : 1}}}")
                 .and("{$project: {activite: '$_id', total : 1}}")
+                .and("{$sort: {total: -1}}")
                 .as(CountByActivity.class).iterator());
         System.out.println("Debug activité : " + listCount.get(0).getActivite());
         System.out.println("Debug nb instal : " + listCount.get(0).getTotal());

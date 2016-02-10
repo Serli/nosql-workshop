@@ -119,7 +119,7 @@ public class CsvToMongoDb {
                         );
                         col.update(searchQuery, updateQuery);
                     });
-
+            col.createIndex(new BasicDBObject("location", "2dsphere"));
             System.out.println("fini activites");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
