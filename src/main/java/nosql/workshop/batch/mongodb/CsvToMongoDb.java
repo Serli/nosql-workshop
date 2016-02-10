@@ -10,7 +10,10 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 
-import org.bson.Document;
+
+import nosql.workshop.connection.ESConnection;
+
+
 import org.jongo.Jongo;
 
 import nosql.workshop.services.MongoDB;
@@ -20,17 +23,20 @@ import nosql.workshop.services.MongoDB;
  * Created by chriswoodrow on 09/02/2016.
  */
 public class CsvToMongoDb {
-	private static final String INSTALLATIONS = "installations";
-	private static final String ACTIVITES = "activites";
-	private static final String EQUIPEMENTS = "equipements";
-	private static final String VILLES = "towns_paysdelaloire";
+	public static final String INSTALLATIONS = "installations";
+	public static final String ACTIVITES = "activites";
+	public static final String EQUIPEMENTS = "equipements";
+	public static final String VILLES = "towns_paysdeloire";
 	private Jongo connection;
+	private ESConnection esConnection;
 	int count=0;
 
 
 	public CsvToMongoDb(){
 		try {
 			this.connection = new MongoDB().getJongo();
+			this.esConnection = new ESConnection("127.0.0.1","9200");
+
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} 
@@ -48,7 +54,20 @@ public class CsvToMongoDb {
 	}
 
 	private  BasicDBObject createVilleObjet(String[] columns) {
-		return null;
+		BasicDBObject object = new BasicDBObject()
+				.append("_id",columns[0])
+				.append("townName", columns[1])
+				.append(
+						"location",
+						new BasicDBObject("type", "Point")
+								.append("coordinates", Arrays.asList(
+												Double.valueOf(columns[6]),
+												Double.valueOf(columns[7])
+										)
+								)
+				);
+		connection.getDatabase().getCollection(VILLES).insert(object);
+		return object;
 	}
 
 	private BasicDBObject createEquipementObject(String[] columns) {
@@ -95,21 +114,21 @@ public class CsvToMongoDb {
 		.append("nom", columns[0])
 		.append("adresse",
 				new BasicDBObject()
-		.append("numero", columns[6])
-		.append("voie", columns[7])
-		.append("lieuDit", columns[5])
-		.append("codePostal", columns[4])
-		.append("commune", columns[2])
+			.append("numero", columns[6])
+			.append("voie", columns[7])
+			.append("lieuDit", columns[5])
+			.append("codePostal", columns[4])
+			.append("commune", columns[2])
 				)
 				.append(
 						"location",
 						new BasicDBObject("type", "Point")
-						.append("coordinates", Arrays.asList(
-								Double.valueOf(columns[10]),
-								Double.valueOf(columns[9])
+								.append("coordinates", Arrays.asList(
+												Double.valueOf(columns[10]),
+												Double.valueOf(columns[9])
+										)
 								)
-								)
-						)
+				)
 						.append("multiCommune", "Oui".equals(columns[16]))
 						.append("nbPlacesParking", columns[17].isEmpty() ? null : Integer.valueOf(columns[17]))
 						.append("nbPlacesParkingHandicapes", columns[18].isEmpty() ? null : Integer.valueOf(columns[18]))
@@ -137,6 +156,9 @@ public class CsvToMongoDb {
 		System.out.print("Starting extraction for "+type);
 		String path = "/batch/csv/"+type.toLowerCase()+".csv";
 		connection.getDatabase().createCollection(type, null);
+
+
+
 		try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream(path);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 			reader.lines()
@@ -145,7 +167,7 @@ public class CsvToMongoDb {
 			.map(line -> line.split(getSpliter(type)))
 			.forEach(columns -> {
 				createObject(lifting(columns),type);
-				if(count==100){
+				if(count==150){
 					System.out.print(".");
 					count=0;
 				}
@@ -187,11 +209,17 @@ public class CsvToMongoDb {
 	}
 
     public void fillDB(){
-        extractCsv(INSTALLATIONS);
-        extractCsv(EQUIPEMENTS);
-        extractCsv(ACTIVITES);
+    //    extractCsv(INSTALLATIONS);
+    //    extractCsv(EQUIPEMENTS);
+    //    extractCsv(ACTIVITES);
+		extractCsv(VILLES);
 		createIndex();
+		fillElasticSearch(VILLES);
     }
+
+	private void fillElasticSearch(String collection){
+		esConnection.insertInIndex(connection.getCollection(collection));
+	}
 
 
     public static void main(String[] args) {

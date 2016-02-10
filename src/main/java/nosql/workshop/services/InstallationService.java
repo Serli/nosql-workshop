@@ -87,32 +87,6 @@ public class InstallationService {
 		long count = installations.count();
 		Iterator<Installation> inst = installations.find().as(Installation.class);
 		List<Installation> list = Lists.newArrayList(inst);
-		/*for(Installation i : list){
-			int equipementSize = i.getEquipements().size();
-			equipementCount+=equipementSize;
-			if(max < equipementSize){
-				max = equipementSize;
-				maxId = i.get_id();
-			}
-
-
-			/*for(Equipement e : i.getEquipements()){
-				if(e != null && e.getActivites()!= null){
-					for(String activity : e.getActivites()){
-						incCountByActivity(activity);
-						/*CountByActivity temp = getCountByActivity(activity);
-						temp.setTotal(temp.getTotal()+1);
-
-						/*if(countByActivities.contains(temp)){
-							countByActivities.get(countByActivities.indexOf(temp)).increment();
-						}
-						else{
-							countByActivities.add(temp.increment());
-						}*/
-					/*}
-				}
-			}*/
-		//}
 		Iterator<MostEquipedInstallation> it= installations.aggregate(
 				  "{$match:{\"equipements\": {$exists:true}}}")
 				  .and("{$unwind:\"$equipements\"}")
@@ -155,14 +129,4 @@ public class InstallationService {
 		return ret;
 	}
 
-	/*public void incCountByActivity(String activity){
-		if(activitiesCounts.containsKey(activity)){
-			activitiesCounts.get(activity).setTotal(activitiesCounts.get(activity).getTotal()+1);
-		}else{
-			CountByActivity ret = new CountByActivity();
-			ret.setActivite(activity);
-			ret.setTotal(1);
-			activitiesCounts.put(activity, ret);
-		}
-	}*/
 }
