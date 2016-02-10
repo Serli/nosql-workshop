@@ -88,8 +88,8 @@ public class InstallationService {
     public List<Installation> getGeoSearchResults(String lat, String lng, String distance) {
         return Lists.newArrayList(installations.find(
                 String.format("{location:{$near:{$geometry:{type:'Point', coordinates: [%s, %s]}, $maxDistance: %s}}}",
-                        String.valueOf(lat),
                         String.valueOf(lng),
+                        String.valueOf(lat),
                         String.valueOf(distance)))
                 .as(Installation.class).iterator());
     }
