@@ -6,13 +6,6 @@ import io.searchbox.core.BulkResult;
 import io.searchbox.core.Index;
 import io.searchbox.indices.IndicesExists;
 import nosql.workshop.connection.ESConnectionUtil;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -59,7 +52,7 @@ public class ImportTown {
 
                             Town town = new Town(name, nameSuggest, location);
 
-                            bulkIndexBuilder.addAction(new Index.Builder(town).index(ES_INDEX).type("towns").build());
+                            bulkIndexBuilder.addAction(new Index.Builder(town).index(ES_INDEX).type("towns").id(id).build());
                         });
 
                 try {
