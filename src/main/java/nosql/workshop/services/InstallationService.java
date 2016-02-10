@@ -67,22 +67,20 @@ public class InstallationService {
     }
 
     public List<Installation> geoSearch(Context search){
-        Float lat = Float.parseFloat(search.get("lat"));
-        Float lng = Float.parseFloat(search.get("lng"));
-        int distance = Integer.parseInt(search.get("distance"));
+        String lat = search.get("lat");
+        String lng = search.get("lng");
+        String distance = search.get("distance");
         DB db = new MongoClient().getDB("nosql-workshop");
         Jongo jongo = new Jongo(db);
         String query = "{location:{$near:{$geometry:{type:'Point', coordinates: ["+lng+", "+lat+"]}, $maxDistance: "+distance+"}}}";
         MongoCollection installations = jongo.getCollection("installations");
-        /*MongoCursor<Installation> all = installations.find(query).as(Installation.class);
+        MongoCursor<Installation> all = installations.find(query).as(Installation.class);
         List<Installation> result = new ArrayList<>();
         for(Installation installation : all){
             result.add(installation);
         }
-        return result;*/
-        List<Installation> results = new ArrayList<>();
-        installations.find(String.format("{location:{$near:{$geometry:{type:'Point', coordinates: [%s, %s]}, $maxDistance: %s}}}", String.valueOf(lat), String.valueOf(lng), String.valueOf(distance))).as(Installation.class).forEach(results::add);
-        return results;
+        return result;
+
 
     }
 

@@ -49,10 +49,7 @@ public class InstallationResource {
     }
 
     @Get("/geosearch")
-    public List<Installation> geosearch(Context context) {
-        return installationService.geoSearch(context);
-
-    }
+    public List<Installation> geosearch(Context context) { return installationService.geoSearch(context); }
 
     @Get("/stats")
     public InstallationsStats stats() {
