@@ -87,7 +87,7 @@ public class SearchService {
 				"            \"query_string\": {\n" +
 				"                \"query\": \"" + string + "\",\n" +
 				"                \"fields\": [\"_all\"],\n" +
-				"                \"analyzer\": \"french\",\n" +
+				"                \"analyzer\": \"french\"\n" +
 				"            }\n" +
 				"        }]\n" +
 				"    }\n" +
