@@ -126,10 +126,13 @@ public class InstallationService {
 				"{$match: {\"equipements.activites\":{$exists : true}}}")
 				.and("{$unwind: \"$equipements\"}")
 				.and("{$unwind: \"$equipements.activites\"}")
-				.and("{$group: {_id:null,activite:{'$first'unsure emoticon\"$equipements.activites\"}, total: {$sum:1}}}")
-				.and("{$sort: {total: -1}}").as(CountByActivity.class);
-    	ArrayList<CountByActivity> activities = Lists.newArrayList(countbyActivitiesIt);
+				.and("{$group: {_id:\"$equipements.activites\", total: {$sum:1}}}")
+				.and("{$project: {_id:0, activite:\"$_id\", total:1}}")
+				.and("{$sort: {total: -1}}")
+				.as(CountByActivity.class);
     	
+    	ArrayList<CountByActivity> activities = Lists.newArrayList(countbyActivitiesIt);
+
     	Consumer<Installation> action = (Installation s) -> list.add(s);
     	installations.find().as(Installation.class).forEach(action);
     	
@@ -138,11 +141,6 @@ public class InstallationService {
     		if (list.get(i).getEquipements().size() > max_equ){
     			max_equ = list.get(i).getEquipements().size();
     		}
-    		/*for (Equipement equ : list.get(i).getEquipements()){
-    			for (String a : equ.getActivites()){
-    				
-    			}
-    		}*/
     	}
     	avg_equ = avg_equ/totalCount;
     	
