@@ -28,8 +28,8 @@ public class MongoDbToElasticSearch {
         // Get installations from MongoDB
         DB db = mongoClient.getDB("nosql-workshop");
         DBCollection installations = db.getCollection("installations");
-        // TODO remove limit (just a hack to work faster)
-        DBCursor cursor = installations.find(new BasicDBObject()).limit(100);
+        // TODO uncomment the limit function call if you want to test faster
+        DBCursor cursor = installations.find(new BasicDBObject())/*.limit(100)*/;
         cursor.setOptions(Bytes.QUERYOPTION_NOTIMEOUT);
 
         // Creates bulk builder
