@@ -192,27 +192,13 @@ public class CsvToMongoToElastic {
 		}
 		System.out.println("Done importing towns");
 	}
-	
-	private void dropElastic() {
-		try {
-			this.elasticClient.execute(new Delete.Builder("1")
-			.index("towns")
-			.index("installations")
-			.build());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 
 	public static void main(String[] args) {
 		CsvToMongoToElastic obj = new CsvToMongoToElastic();
-		//obj.collection.drop();
 		//obj.collection.createIndex(new BasicDBObject("$**", "text"));
 		//obj.saveToMongo();
 		//obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
-		//obj.dropElastic();
 		//obj.saveToElastic();
 		obj.importTowns();
 	}
