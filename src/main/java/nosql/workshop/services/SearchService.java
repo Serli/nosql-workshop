@@ -66,7 +66,6 @@ public class SearchService {
         try {
             SuggestResult suggestResult = client.execute(suggest);
             if (suggestResult.isSucceeded()) {
-                //suggestResult.getSuggests().forEach(System.out::println);
                 return suggestResult.getSuggests()
                         .stream().map(str -> new TownSuggest(str, Arrays.asList(new Double[]{})))
                         .collect(Collectors.toList());

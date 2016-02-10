@@ -7,6 +7,7 @@ import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
+import org.jongo.Aggregate;
 import org.jongo.MongoCollection;
 
 import java.net.UnknownHostException;
@@ -46,12 +47,13 @@ public class InstallationService {
 
         installationsStats.setTotalCount(installations.count());
 
+        Aggregate.ResultsIterator<Average> avgResult = installations
+                .aggregate("{$group: {_id: null, average: {$avg : {$size: \"$equipements\"}}}}")
+                .as(Average.class);
+
         installationsStats.setAverageEquipmentsPerInstallation(
-                installations
-                        .aggregate("{$group: {_id: null, average: {$avg : {$size: \"$equipements\"}}}}")
-                        .as(Average.class)
-                        .next()
-                        .getAverage());
+                avgResult.hasNext() ? avgResult.next().getAverage() : 0.0
+        );
 
         installationsStats.setCountByActivity(Lists.newArrayList(
                 installations
@@ -62,12 +64,15 @@ public class InstallationService {
                         .and("{ $project: {activite: \"$_id\", total : 1} }")
                         .as(CountByActivity.class).iterator()));
 
+
+        Aggregate.ResultsIterator<Installation> maxEquipementsResult = installations
+                .aggregate("{ $project : {_id : 1, nom: 1, equipements : 1, size : {$size: \"$equipements\"} } }")
+                .and("{ $sort : {size : -1} } }")
+                .and("{ $limit : 1 }")
+                .as(Installation.class);
+
         installationsStats.setInstallationWithMaxEquipments(
-                installations
-                        .aggregate("{ $project : {_id : 1, nom: 1, equipements : 1, size : {$size: \"$equipements\"} } }")
-                        .and("{ $sort : {size : -1} } }")
-                        .and("{ $limit : 1 }")
-                        .as(Installation.class).next()
+                maxEquipementsResult.hasNext() ? maxEquipementsResult.next() : new Installation()
         );
 
         return installationsStats;

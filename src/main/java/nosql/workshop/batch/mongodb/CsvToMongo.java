@@ -34,7 +34,9 @@ public class CsvToMongo {
 
     private void dropDB() {
         DB db = mongoClient.getDB("nosql-workshop");
-        db.dropDatabase();
+        try {
+            db.dropDatabase();
+        } catch (Exception e) { }
     }
 
     public void installations() {
@@ -96,7 +98,6 @@ public class CsvToMongo {
                             .append("nom", columns[5].trim())
                             .append("type", columns[7].trim())
                             .append("famille", columns[9].trim());
-                            //.append("activites", new BasicDBList());
 
                     col.update(installation, new BasicDBObject("$push", new BasicDBObject("equipements", obj)));
                 });
