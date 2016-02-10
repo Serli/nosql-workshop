@@ -1,6 +1,7 @@
 package nosql.workshop.resources;
 
 import com.google.inject.Inject;
+
 import net.codestory.http.Context;
 import net.codestory.http.annotations.Get;
 import nosql.workshop.model.Installation;
@@ -25,12 +26,12 @@ public class InstallationResource {
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        return null;
+        return installationService.getAll();
     }
 
     @Get("/:numero")
-    public Installation get(String numero) {
-        return null;
+    public Installation get(String number) {
+    	return installationService.get(number);
     }
 
 
@@ -41,19 +42,18 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
+    	return installationService.search(context.query().get("query"));
 
     }
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) {
-        return null;
-
+        return installationService.geosearch(context);
     }
 
     @Get("/stats")
     public InstallationsStats stats() {
-        return null;
-
+        return installationService.stats();
     }
+    
 }
