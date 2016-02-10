@@ -7,6 +7,8 @@ import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,9 +43,14 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        context.query().get("query");
-        return null;
-
+        String query = context.query().get("query");
+        List<Installation> installations = new ArrayList<Installation>();
+        try {
+            installations = installationService.search(query);
+        } catch (IOException e) {
+            e.getStackTrace();
+        }
+        return installations;
     }
 
     @Get("/geosearch")

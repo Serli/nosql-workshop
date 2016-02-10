@@ -3,18 +3,26 @@ package nosql.workshop.services;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.searchbox.client.JestClient;
+import io.searchbox.core.Search;
+import io.searchbox.core.SearchResult;
+import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
+import nosql.workshop.model.suggest.TownSuggest;
 import org.jongo.MongoCollection;
 
 import net.codestory.http.Context;
+
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static nosql.workshop.model.Installation.*;
 
@@ -88,5 +96,46 @@ public class InstallationService {
         stats.setCountByActivity(listCount);
 
         return stats;
+    }
+
+    public List<Installation> search(String query) throws IOException {
+        List<Installation> installations = new ArrayList<Installation>();
+
+        JestClient client = ESConnectionUtil.createClient("");
+
+
+        String querySearch2 = "{\"query\": {\n"
+                + "     \"match\": {\n"
+                + "         \"nom\": \"" + query + "\"\n"
+                + "     }\n"
+                + "}}";
+
+
+        String querySearch3 = "{"
+            + " \"query\": {\n"
+            + "     \"multi_match\": {\n"
+            + "         \"query\": \"" + query + "\",\n"
+            + "         \"fields\": [\n"
+            + "             \"_all\"\n"
+            + "         ]\n"
+            + "     }\n"
+            + " }\n"
+            + "}";
+
+        String querySearch = "{\"query\": {\"multi_match\": {\"query\": \""+query+"\", \"fields\": [\"_all\"] }}}";
+        Search.Builder searchBuilder = new Search.Builder(querySearch).addIndex("installations").addType("installation");
+        System.out.println(querySearch);
+
+        SearchResult result = client.execute(searchBuilder.build());
+
+        List<SearchResult.Hit<Installation, Void>> hits = result.getHits(Installation.class);
+        Stream<Installation> installationStream = hits.stream().map(installation -> installation.source);
+        return Lists.newArrayList(installationStream.iterator());
+       /** if (!hits.isEmpty()) {
+            for (SearchResult.Hit<Installation, Void> hit : hits) {
+                installations.add(hit.source);
+            }
+        }
+        return installations;**/
     }
 }
