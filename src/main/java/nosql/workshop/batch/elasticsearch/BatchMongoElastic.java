@@ -19,9 +19,7 @@ public class BatchMongoElastic {
         String index = "installations";
         String type = "installation";
         Bulk.Builder builder = new Bulk.Builder();
-        installations.forEach(installation -> {
-            builder.addAction(createIndex(installation, index, type));
-        });
+        installations.forEach(installation -> builder.addAction(createIndex(installation, index, type)));
         Bulk bulk = builder.build();
 
         try {
@@ -33,6 +31,7 @@ public class BatchMongoElastic {
 
     private static Index createIndex(DBObject installation, String index, String type) {
         String id = installation.get("_id").toString();
+        installation.put("id", installation.get("_id"));
         installation.removeField("_id");
         installation.removeField("dateMiseAJourFiche");
         return new Index.Builder(installation).index(index).type(type).id(id).build();
