@@ -28,6 +28,6 @@ public class TownResource {
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-        return null;
+        return installationService.getLocation(townName);
     }
 }

@@ -186,16 +186,44 @@ public class InstallationService {
     	                                .build();
     	
     	JestResult result;
+    	String ville="";
 		try {
 			result = client.execute(searching);
 			System.out.println(result.getJsonString());
 			// Not the good way to retrieve an object with a JSON, with more time, change it
-			String ville =result.getJsonString().substring(result.getJsonString().indexOf("\"text\"")+8, result.getJsonString().indexOf("\"offset\"")-2);
-	    	return this.searchTown(ville);
+			// DO it better to retrived everything
+			try{
+				ville =result.getJsonString().substring(result.getJsonString().indexOf("\"options\":[{\"text\"")+20, result.getJsonString().indexOf("\"score\"")-2);
+			}
+			catch(Exception e){}
+			return this.searchTown(ville);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	return null;
     }
+    
+    public Double[] getLocation(String search){
+    	JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
+    	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    	searchSourceBuilder.query(QueryBuilders.queryString(search));
+    	 
+    	Search searching = (Search) new Search.Builder(searchSourceBuilder.toString())
+    	                                // multiple index or types can be added.
+    	                                .addIndex("towns")
+    	                                .addType("town")
+    	                                .build();
+    	 
+    	try {
+			JestResult result = client.execute(searching);
+			System.out.println(result.getSourceAsObjectList(TownSuggest.class));
+			return (result.getSourceAsObjectList(TownSuggest.class)).get(0).getLocation();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return null;
+    }
+    
 }
