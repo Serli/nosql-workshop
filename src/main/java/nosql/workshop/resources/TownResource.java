@@ -5,6 +5,7 @@ import net.codestory.http.annotations.Get;
 import nosql.workshop.model.suggest.TownSuggest;
 import nosql.workshop.services.SearchService;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -12,18 +13,30 @@ import java.util.List;
  */
 public class TownResource {
 
+    private final SearchService searchService;
 
     @Inject
-    public TownResource() {
+    public TownResource(SearchService searchService) {
+        this.searchService = searchService;
     }
 
     @Get("suggest/:text")
     public List<TownSuggest> suggest(String text) {
-        return null;
+        try {
+            return searchService.suggest(text);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-        return null;
+        try {
+            return searchService.getLocation(townName);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
