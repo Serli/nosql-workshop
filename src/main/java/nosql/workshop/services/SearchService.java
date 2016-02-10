@@ -83,7 +83,7 @@ public class SearchService {
      */
     public List<TownSuggest> autocompleteTown(String string) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.prefixQuery("townname", string));
+        searchSourceBuilder.query(QueryBuilders.prefixQuery("townname", string.toLowerCase()));
         Search research = new Search.Builder(searchSourceBuilder.toString())
                 .addIndex("towns")
                 .addType("town")
