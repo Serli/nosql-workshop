@@ -10,6 +10,7 @@ import com.mongodb.BasicDBObject;
 import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.InstallationsStats;
 
 import org.bson.BasicBSONDecoder;
 import org.jongo.MongoCollection;
@@ -130,18 +131,28 @@ public class InstallationService {
             }
         }
         return list;
-
-        /*
-        db.installations.find({ "location" :
-    { $near :
-        { $geometry :
-            { type : "Point" ,
-              coordinates : [ -1.5 , 47.3 ]
-            },
-            $maxDistance : 5000
-        }
-    }
-})
-         */
 	}
+	
+	public InstallationsStats stats() throws IOException {
+		MongoCursor<Installation> all = this.installations.find().as(Installation.class);
+    	List<Installation> list = new ArrayList<Installation>();
+    	try {
+			while(all.hasNext()) {
+				Installation inst = all.next();
+				list.add(inst);
+			}
+		} finally {
+			all.close();
+		}
+    	
+    	InstallationsStats stats = new InstallationsStats();
+    	stats.setTotalCount(list.size());
+    	
+    	this.installations.aggregate("{$project:{sender:1}}")
+        	.and("{$match:{tags:'read'}}")
+        	.and("{$limit:10}")
+        	.as(Installation.class);
+    	
+        return stats;
+    }
 }

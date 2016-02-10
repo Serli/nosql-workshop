@@ -52,8 +52,8 @@ public class InstallationResource {
     }
 
     @Get("/stats")
-    public InstallationsStats stats() {
-        return null;
+    public InstallationsStats stats() throws IOException {
+        return this.installationService.stats();
 
     }
 }
