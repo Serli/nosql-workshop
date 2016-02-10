@@ -68,14 +68,12 @@ public class SearchService {
     public Double[] locationOf(String town) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchQuery("townname", town));
-        System.out.println(searchSourceBuilder.toString());
         Search research = new Search.Builder(searchSourceBuilder.toString()).addIndex("towns").addType("town").build();
         try {
             SearchResult result = elasticClient.execute(research);
             JsonObject hits = result.getJsonObject().get("hits").getAsJsonObject();
-            if (hits.get("total").getAsInt() > 1) {
+            if (hits.get("total").getAsInt() >= 1) {
                 JsonObject hit = hits.get("hits").getAsJsonArray().get(0).getAsJsonObject().get("_source").getAsJsonObject();
-                System.out.println(hit.toString());
                 Double[] location = {hit.get("x").getAsDouble(), hit.get("y").getAsDouble()};
                 return location;
             } else {
