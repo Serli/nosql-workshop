@@ -129,7 +129,7 @@ public class CsvToMongoToElastic {
 
 	private void saveActivites(String[] columns) {
 		DBObject query = new BasicDBObject("equipements", new BasicDBObject("$elemMatch", new BasicDBObject("numero", columns[2].trim())));
-		DBObject update = new BasicDBObject("$push", new BasicDBObject("activites", columns[5]));
+		DBObject update = new BasicDBObject("$push", new BasicDBObject("equipements.$.activites", columns[5]));
 		this.collection.findAndModify(query, update);
 	}
 
@@ -196,11 +196,12 @@ public class CsvToMongoToElastic {
 
 	public static void main(String[] args) {
 		CsvToMongoToElastic obj = new CsvToMongoToElastic();
-		//obj.collection.createIndex(new BasicDBObject("$**", "text"));
-		//obj.saveToMongo();
-		//obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
+		obj.collection.drop();
+		obj.collection.createIndex(new BasicDBObject("$**", "text"));
+		obj.saveToMongo();
+		obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
 		//obj.saveToElastic();
-		obj.importTowns();
+		//obj.importTowns();
 	}
 
 }
