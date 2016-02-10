@@ -105,7 +105,7 @@ public class InstallationService {
         List<CountByActivity> countList = new ArrayList<>();
         Aggregate.ResultsIterator<CountByActivity> iterator = installations.aggregate("{ $unwind: '$equipements'}")
                 .and("{$unwind: '$equipements.activites'}")
-                .and("{$group: {_id: '$equipement.activites', total:{$sum: 1}}}")
+                .and("{$group: {_id: '$equipements.activites', total:{$sum: 1}}}")
                 .and("{$project: {activite: '$_id', total: 1}}")
                 .as(CountByActivity.class);
         iterator.forEach(countList::add);
