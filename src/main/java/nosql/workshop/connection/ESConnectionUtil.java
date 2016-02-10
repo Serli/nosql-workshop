@@ -8,12 +8,14 @@ import io.searchbox.client.config.HttpClientConfig;
  * Utilitaire permettant de gérer la connexion à MongoDB
  */
 public abstract class ESConnectionUtil {
+
+    public static final JestClient client = createClient();
+
     private ESConnectionUtil() {
     }
 
-    private static JestClient createClient(String esUrlProperty) {
-        String esGivenUri = System.getenv(esUrlProperty);
-        String serverUri = esGivenUri == null ? "http://localhost:9200" : esGivenUri;
+    private static JestClient createClient() {
+        String serverUri = "http://localhost:9200";
 
         JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(new HttpClientConfig
