@@ -2,6 +2,8 @@ package nosql.workshop.batch.es;
 
 import io.searchbox.annotations.JestId;
 import io.searchbox.client.JestClient;
+import io.searchbox.client.JestClientFactory;
+import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.BulkResult;
 import io.searchbox.core.Index;
@@ -32,7 +34,12 @@ public class ImportTown {
 
     private void importTowns() {
 
-        JestClient jestClient = ESConnectionUtil.createClient("");
+        JestClientFactory factory = new JestClientFactory();
+        factory.setHttpClientConfig(new HttpClientConfig
+                .Builder("http://localhost:9200")
+                .readTimeout(999999999)
+                .build());
+        JestClient jestClient = factory.getObject();
         try {
             boolean exists = jestClient.execute(new IndicesExists.Builder(ES_INDEX).build()).isSucceeded();
             if (!exists) {
@@ -86,13 +93,13 @@ public class ImportTown {
         private final String id;
         private final String name;
         private final String nameSuggest;
-        private final List<Double> location;
+        private final List<Double> townLocation;
 
         public Town(String id, String name, String nameSuggest, List<Double> location) {
             this.id = id;
             this.name = name;
             this.nameSuggest = nameSuggest;
-            this.location = location;
+            this.townLocation = location;
         }
     }
 }
