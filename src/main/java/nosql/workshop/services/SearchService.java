@@ -1,30 +1,18 @@
 package nosql.workshop.services;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.searchbox.client.JestClient;
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.JestResult;
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.core.*;
+import io.searchbox.core.Search;
+import io.searchbox.core.SearchResult;
+import io.searchbox.core.Suggest;
+import io.searchbox.core.SuggestResult;
 import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.suggest.TownSuggest;
-import nosql.workshop.resources.TownResource;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.engine.Engine;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Search service permet d'encapsuler les appels vers ElasticSearch
@@ -42,16 +30,13 @@ public class SearchService {
                 "   }\n" +
                 "}";
 
-        System.out.println(query);
-
         Search search = new Search.Builder(query).addIndex("installations").addType("installation").build();
 
         try {
             SearchResult searchResult = client.execute(search);
             if (searchResult.isSucceeded()) {
-                List<SearchResult.Hit<Installation, Void>> hits = searchResult.getHits(Installation.class);
-                Stream<Installation> installationStream = hits.stream().map(installation -> installation.source);
-                return Lists.newArrayList(installationStream.iterator());
+                return searchResult.getHits(Installation.class)
+                        .stream().map(installation -> installation.source).collect(Collectors.toList());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -60,9 +45,40 @@ public class SearchService {
     }
 
     public List<TownSuggest> suggest(String text) {
+        return suggestWithSearch(text);
+        //return suggestWithSuggestAPI(text);
+    }
 
+    private List<TownSuggest> suggestWithSuggestAPI(String text) {
         JestClient client = ESConnectionUtil.createClient("");
+        String suggestQuery =
+                "{\n"+
+                        "    \"suggest\" : {\n" +
+                        "        \"text\" : \"" + text + "\", \n" +
+                        "        \"term\" : {\n" +
+                        "            \"field\" : \"townName\" \n" +
+                        "        }\n" +
+                        "    }\n" +
+                        "}";
 
+        Suggest suggest = new Suggest.Builder(suggestQuery, "suggest").addIndex("towns").build();
+
+        try {
+            SuggestResult suggestResult = client.execute(suggest);
+            if (suggestResult.isSucceeded()) {
+                //suggestResult.getSuggests().forEach(System.out::println);
+                return suggestResult.getSuggests()
+                        .stream().map(str -> new TownSuggest(str, Arrays.asList(new Double[]{})))
+                        .collect(Collectors.toList());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    private List<TownSuggest> suggestWithSearch(String text) {
+        JestClient client = ESConnectionUtil.createClient("");
         String query = "{\n" +
                 "        \"query\": {\n"+
                 "           \"wildcard\": {\n"+
@@ -79,8 +95,7 @@ public class SearchService {
             SearchResult searchResult = client.execute(search);
             if (searchResult.isSucceeded()) {
                 List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
-                Stream<TownSuggest> townSuggestStream = hits.stream().map(townHit -> townHit.source);
-                return Lists.newArrayList(townSuggestStream.iterator());
+                return hits.stream().map(townHit -> townHit.source).collect(Collectors.toList());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -105,8 +120,7 @@ public class SearchService {
             if (searchResult.isSucceeded()) {
                 List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
                 if (!hits.isEmpty()) {
-                    SearchResult.Hit<TownSuggest, Void> townHit = hits.get(0);
-                    return townHit.source.getLocation();
+                    return hits.get(0).source.getLocation();
                 }
             }
         } catch (IOException e) {
