@@ -1,17 +1,17 @@
 package nosql.workshop.services;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import nosql.workshop.model.Installation;
 import nosql.workshop.model.suggest.TownSuggest;
 import nosql.workshop.utils.JestConnection;
-import nosql.workshop.model.Installation;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +44,9 @@ public class SearchService {
                 .build();
         try {
             SearchResult result = elasticClient.execute(research);
-            return result.getSourceAsObjectList(Installation.class);
+            List<Installation> installations = new ArrayList<>();
+            result.getHits(Installation.class).iterator().forEachRemaining(hit -> installations.add(hit.source));
+            return installations;
         } catch (IOException e) {
             return null;
         }
@@ -58,10 +60,7 @@ public class SearchService {
     public Double[] locationOf(String town) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchQuery("townname", town));
-        Search research = new Search.Builder(searchSourceBuilder.toString())
-                .addIndex("towns")
-                .addType("town")
-                .build();
+        Search research = new Search.Builder(searchSourceBuilder.toString()).addIndex("towns").addType("town").build();
         try {
             SearchResult result = elasticClient.execute(research);
             JsonObject hits = result.getJsonObject().get("hits").getAsJsonObject();
@@ -91,18 +90,18 @@ public class SearchService {
                 .build();
         try {
             SearchResult result = elasticClient.execute(research);
+            System.out.println(result.getJsonObject().toString());
             JsonArray hits = result.getJsonObject().get("hits").getAsJsonObject().get("hits").getAsJsonArray();
             List<TownSuggest> townSuggests = new ArrayList<>();
-            String name;
             List<Double> location = new ArrayList<>();
-            for (int i=0; i<hits.size(); i++) {
-                JsonObject hit = hits.get(i).getAsJsonObject().get("_source").getAsJsonObject();
-                name = hit.get("townname").getAsString();
-                location.add(hit.get("x").getAsDouble());
-                location.add(hit.get("y").getAsDouble());
+            hits.forEach(hit -> {
+                JsonObject content = hit.getAsJsonObject().get("_source").getAsJsonObject();
+                String name = content.get("townname").getAsString();
+                location.add(content.get("x").getAsDouble());
+                location.add(content.get("y").getAsDouble());
                 townSuggests.add(new TownSuggest(name, location));
                 location.clear();
-            }
+            });
             return townSuggests;
         } catch (IOException e) {
             return null;

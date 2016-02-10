@@ -28,7 +28,8 @@ public class MongoDbToElasticSearch {
         // Get installations from MongoDB
         DB db = mongoClient.getDB("nosql-workshop");
         DBCollection installations = db.getCollection("installations");
-        DBCursor cursor = installations.find(new BasicDBObject());
+        // TODO remove limit (just a hack to work faster)
+        DBCursor cursor = installations.find(new BasicDBObject()).limit(100);
         cursor.setOptions(Bytes.QUERYOPTION_NOTIMEOUT);
 
         // Creates bulk builder
@@ -43,7 +44,6 @@ public class MongoDbToElasticSearch {
             installationMap.put("id", id);
             installationMap.remove("dateMiseAJourFiche");
             // Add action to add current document in ElasticSearch
-            System.out.println(JSON.serialize(installationMap));
             bulkBuilder.addAction(
                     new Index.Builder(
                             JSON.serialize(installationMap)

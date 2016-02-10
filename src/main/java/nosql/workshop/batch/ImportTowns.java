@@ -8,6 +8,8 @@ import nosql.workshop.utils.Utils;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Killian
@@ -57,20 +59,25 @@ public class ImportTowns {
 
     /**
      * Adds an action to the given bulk builder.
+     *
      * @param bulkBuilder bulk builder
-     * @param values values to add
+     * @param values      values to add
      */
     private static void addAction(Bulk.Builder bulkBuilder, String[] values) {
         try {
+            Map<String, String> suggest = new HashMap<>();
+            suggest.put("input", Utils.cleanString(values[2]));
+            suggest.put("output", Utils.cleanString(values[2]));
+            suggest.put("payload", Utils.cleanString(values[2]));
             String jsonValues = XContentFactory.jsonBuilder()
                     .startObject()
                     .field("townname", Utils.cleanString(values[1]))
-                    .field("townname_suggest", Utils.cleanString(values[2]))
                     .field("postcode", Utils.cleanString(values[3]))
                     .field("pays", Utils.cleanString(values[4]))
                     .field("region", Utils.cleanString(values[5]))
                     .field("x", Utils.cleanString(values[6]))
                     .field("y", Utils.cleanString(values[7]))
+                    .field("suggest", suggest)
                     .endObject()
                     .string();
             bulkBuilder.addAction(new Index.Builder(jsonValues).id(Utils.cleanString(values[0])).build());
