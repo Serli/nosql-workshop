@@ -22,21 +22,11 @@ import com.google.inject.Inject;
  * Search service permet d'encapsuler les appels vers ElasticSearch
  */
 public class SearchService {
-	/**
-     * Nom de la collection MongoDB.
-     */
-    public static final String COLLECTION_NAME = "installations";
 
-    private final MongoCollection installations;
-    
-    @Inject
-    public SearchService(MongoDB mongoDB) throws UnknownHostException {
-        this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
-    }
 
 	public List<TownSuggest> suggest(String text) {
 		//Configuration du client
-		JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
+		/*JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
 		List<TownSuggest> aRetourner = new ArrayList<TownSuggest>();
 		try {
 			//Indexing
@@ -80,7 +70,7 @@ public class SearchService {
 	}
 
 	public Double[] getLocation(String townName) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub*/
 		return null;
 	}
 
