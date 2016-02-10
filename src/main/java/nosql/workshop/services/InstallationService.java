@@ -70,7 +70,7 @@ public class InstallationService {
                 .and("{$project: {activite: \"$_id\", total : 1}}")
                 .as(CountByActivity.class).iterator()));
         installationsStats.setInstallationWithMaxEquipments(installations.findOne("{ _id : # }", installations
-                .aggregate("{ $project : { nbEquip : { $size: '$equipements' } } }")
+                .aggregate("{ $project : { nbEquip : { $size: { $ifNull : ['$equipements', []] } } } }")
                 .and("{ $sort : { nbEquip : -1 } }")
                 .and("{ $limit : 1 }")
                 .as(Installation.class).next().get_id()).as(Installation.class));
