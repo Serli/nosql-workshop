@@ -55,4 +55,5 @@ public class InstallationResource {
     public InstallationsStats stats() {
         return installationService.stats();
     }
+    
 }

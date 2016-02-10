@@ -9,17 +9,18 @@ import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 
+import org.apache.lucene.util.fst.Builder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+
 import com.mongodb.BasicDBObject;
 
 import net.codestory.http.Context;
 import nosql.workshop.model.stats.InstallationsStats;
+import nosql.workshop.model.suggest.TownSuggest;
 
-import org.jongo.Find;
 import org.jongo.MongoCollection;
-import org.jongo.MongoCursor;
-import org.omg.CORBA.SystemException;
 
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
@@ -28,12 +29,8 @@ import io.searchbox.core.Search;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 import java.util.function.Consumer;
-
-import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -93,6 +90,28 @@ public class InstallationService {
 		}
     	return null;
     }
+    
+    public List<TownSuggest> searchTown(String search){
+    	JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
+    	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    	searchSourceBuilder.query(QueryBuilders.queryString(search));
+    	 
+    	Search searching = (Search) new Search.Builder(searchSourceBuilder.toString())
+    	                                // multiple index or types can be added.
+    	                                .addIndex("towns")
+    	                                .addType("town")
+    	                                .build();
+    	 
+    	try {
+			JestResult result = client.execute(searching);
+			System.out.println(result.getSourceAsObjectList(TownSuggest.class));
+			return result.getSourceAsObjectList(TownSuggest.class);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return null;
+    }
 
     public List<Installation> geosearch(Context context) {
     	double lat = Double.parseDouble(context.get("lat"));
@@ -109,6 +128,31 @@ public class InstallationService {
     public InstallationsStats stats(){
     	int totalCount = (int) installations.count();
     	installations.aggregate("[{$group : {_id : \"$nbequ\", total : {$sum : 1}}}]");
+    	return null;
+    }
+    
+    public List<TownSuggest> suggest(String search){
+    	JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
+    	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    	searchSourceBuilder.suggest().addSuggestion(SuggestBuilders.completionSuggestion(search));
+    	String query =  String.format("{\"size\": 0, \"suggest\" : {\"my-suggestions\" : {\"text\" : \"%s\",\"term\" : {\"size\" : 3,\"field\" : \"townName\"}}}}", search) ;
+    	Search searching = (Search) new Search.Builder(query)
+    	                                // multiple index or types can be added.
+    	                                .addIndex("towns")
+    	                                .addType("town")
+    	                                .build();
+    	
+    	JestResult result;
+		try {
+			result = client.execute(searching);
+			System.out.println(result.getJsonString());
+			// Not the good way to retrieve an object with a JSON, with more time, change it
+			String ville =result.getJsonString().substring(result.getJsonString().indexOf("\"text\"")+8, result.getJsonString().indexOf("\"offset\"")-2);
+	    	return this.searchTown(ville);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	return null;
     }
 }

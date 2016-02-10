@@ -22,6 +22,11 @@ public class CsvToMongoDB {
 
 	
 	public static void main(String[] args) {
+		CsvToMongoDB.addInstallations();
+		CsvToMongoDB.addTown();
+	}
+	
+	public static void addInstallations() {
 		MongoClient mongoclient = new MongoClient();
 		DB db = mongoclient.getDB("nosql-workshop");
 		DBCollection col = db.getCollection("installations");
@@ -150,6 +155,46 @@ public class CsvToMongoDB {
 		
 	}
 		
+	
+	public static void addTown(){
+		MongoClient mongoclient = new MongoClient();
+		DB db = mongoclient.getDB("nosql-workshop");
+		DBCollection col = db.getCollection("towns");
+		col.drop();
+		
+		String csvFileInstal = "./src/main/resources/batch/csv/towns_paysdeloire.csv";
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
+
+		try {
+
+			br = new BufferedReader(new FileReader(csvFileInstal));
+			line = br.readLine();
+			while ((line = br.readLine()) != null) {
+
+			        // use comma as separator
+				String[] town = line.split(cvsSplitBy);
+				
+				DBObject towns = new BasicDBObject().append("townName", town[2].substring(1, town[2].length()-1))
+						.append("location", Arrays.asList(Double.valueOf(town[7]), Double.valueOf(town[6])));
+						
+				col.insert(towns);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 		
 		
 }

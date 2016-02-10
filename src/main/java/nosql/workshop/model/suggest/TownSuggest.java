@@ -3,16 +3,24 @@ package nosql.workshop.model.suggest;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jongo.marshall.jackson.oid.MongoId;
+
 /**
  * Town suggestion
  */
 public class TownSuggest {
+	@MongoId
+    public String _id;
     private String townName;
     private Double[] location;
 
     private TownSuggest() {
     }
 
+    public void set_id(String s){
+    	this._id=s;
+    }
+    
     public TownSuggest(String value, List<Double> location) {
         this.townName = value;
         this.location = location.toArray(new Double[location.size()]);
