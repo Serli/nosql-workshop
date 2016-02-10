@@ -46,15 +46,11 @@ public class InstallationResource {
     public List<Installation> search(Context context) {
         String item = context.query().get("query");
         return searchService.search(item);
-
     }
 
     @Get("/geosearch")
     public List<Installation> geosearch(Context context) { return installationService.geoSearch(context); }
 
     @Get("/stats")
-    public InstallationsStats stats() {
-        return null;
-
-    }
+    public InstallationsStats stats() { return installationService.getStats(); }
 }

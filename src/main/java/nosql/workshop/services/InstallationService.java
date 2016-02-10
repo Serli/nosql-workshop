@@ -1,23 +1,22 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
-
-import com.mongodb.client.MongoDatabase;
-import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
-import org.bson.Document;
+import nosql.workshop.model.stats.Average;
+import nosql.workshop.model.stats.CountByActivity;
+import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
-
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import net.codestory.http.Context;
+
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -81,8 +80,38 @@ public class InstallationService {
             result.add(installation);
         }
         return result;
+    }
 
+    public InstallationsStats getStats() {
+        InstallationsStats installationsStats = new InstallationsStats();
+        Average averagePerInstallation;
+        ArrayList<CountByActivity> countByActivity;
+        Installation maxEquipements;
+        installationsStats.setTotalCount(installations.count());
 
+        averagePerInstallation = installations
+                                    .aggregate("{$group: {_id: null, average: {$avg : {$size: \"$equipements\"}}}}")
+                                    .as(Average.class)
+                                    .next();
+        installationsStats.setAverageEquipmentsPerInstallation(averagePerInstallation.getAverage());
+
+        countByActivity = Lists.newArrayList(installations
+                                                .aggregate("{$unwind: \"$equipements\"}")
+                                                .and("{$unwind: \"$equipements.activites\"}")
+                                                .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
+                                                .and("{$sort : { total : -1 }}")
+                                                .and("{$project: {activite: \"$_id\", total : 1}}")
+                                                .as(CountByActivity.class).iterator());
+        installationsStats.setCountByActivity(countByActivity);
+
+        maxEquipements = installations
+                            .aggregate("{$project : {_id : 1, nom: 1, equipements : 1, size : {$size: \"$equipements\"}}}")
+                            .and("{$sort : {size : -1}}}")
+                            .and("{$limit : 1}")
+                            .as(Installation.class).next();
+        installationsStats.setInstallationWithMaxEquipments(maxEquipements);
+
+        return installationsStats;
     }
 
 }
