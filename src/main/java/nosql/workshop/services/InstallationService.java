@@ -63,6 +63,7 @@ public class InstallationService {
                 .and("{$unwind: \"$equipements.activites\"}")
                 .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
                 .and("{$project: {activite: \"$_id\", total : 1}}")
+                .and("{ $sort : { total : -1 } }")
                 .as(CountByActivity.class).iterator()));
         stats.setAverageEquipmentsPerInstallation(installations.aggregate("{$group: {_id: null, average : { $avg : { $size : \"$equipements\"}}}}")
                 .as(Average.class).next().getAverage());
