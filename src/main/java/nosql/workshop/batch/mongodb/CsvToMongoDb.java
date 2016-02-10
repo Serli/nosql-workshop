@@ -209,9 +209,9 @@ public class CsvToMongoDb {
 	}
 
     public void fillDB(){
-    //    extractCsv(INSTALLATIONS);
-    //    extractCsv(EQUIPEMENTS);
-    //    extractCsv(ACTIVITES);
+        extractCsv(INSTALLATIONS);
+        extractCsv(EQUIPEMENTS);
+        extractCsv(ACTIVITES);
 		extractCsv(VILLES);
 		createIndex();
 		fillElasticSearch(VILLES);
