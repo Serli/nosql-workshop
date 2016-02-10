@@ -25,8 +25,8 @@ public class TownResource {
         return this.searchService.suggest(text);
     }
 
-//    @Get("location/:townName")
-//    public Double[] getLocation(String townName){
-//        return this.searchService.getLocation(townName);
-//    }
+    @Get("location/:townName")
+    public Double[] getLocation(String townName){
+        return this.searchService.getLocation(townName);
+    }
 }
