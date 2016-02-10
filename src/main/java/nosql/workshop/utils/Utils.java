@@ -5,8 +5,7 @@ package nosql.workshop.utils;
  */
 public abstract class Utils {
 
-    private Utils() {
-    }
+    private Utils() {}
 
     /**
      * Removes double quotes from a String.
@@ -17,4 +16,8 @@ public abstract class Utils {
         return toClean.matches("\".*\"") ? toClean.substring(1, toClean.length() - 1).trim() : toClean.trim();
     }
 
+    public static int getIntValue(String toClean) {
+        String val = cleanString(toClean);
+        return val.isEmpty() ? 0 : Integer.parseInt(val);
+    }
 }
