@@ -257,9 +257,27 @@ Des liens existent entre les trois jeux de données :
 
 ![model](assets/model.png)
 
+L'architecture du projet est la suivante : 
+
+![model](assets/ArchitectureWorkshop.png)
+
+* `CsvToMongo` : batch d'import des fichiers CSV dans MongoDB.
+* `MongoToElastic` : batch de transfert des données de MongoDB dans Elasticsearch.
+* `TownsImporter` : batch d'import des villes des Pays de la Loire dans Elasticsearch.
+* `Services` : services métiers proposant les méthodes de lecture et de recherche utilisées par les `Resources`.
+* `Resources` : points d'entrée de l'API REST consommée par l'application web.
+* `Application web` : ensemble des pages web du workshop (vous n'avez pas à y toucher).
+
 ### Import des données dans MongoDB
 
 La première tâche consiste à créer la collection des installations sportives à partir des trois fichiers CSV, en utilisant le driver MongoDB natif Java (package `nosql.workshop.batch.mongodb`).
+Il faut donc créer le batch `CsvToMongo`, dont l'exécution se déroule en 3 principales étapes : 
+
+1. lecture du fichier des installations et insertions dans MongoDB.
+2. lecture du fichier des équipements et mise à jour des installations précédemment créées.
+3. lecture du fichier des activités et mise à jour des équipements des installations.
+
+Exemple d'installation sportive : 
 
 ```javascript
 {
@@ -300,7 +318,7 @@ La première tâche consiste à créer la collection des installations sportives
 
 ### Services Java
 
-La seconde tâche consiste à implémenter les services Java utilisés par les pages web de l'application (package `nosql.workshop.services`).
+La seconde tâche consiste à implémenter les `Services` Java (package `nosql.workshop.services`) utilisés par les `Resources`.
 
 L'application web propose une page "API Checkup" permettant de vérifier que les services répondent correctement.
 
