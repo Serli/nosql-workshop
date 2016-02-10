@@ -1,9 +1,9 @@
 package nosql.workshop.model;
 
 
+import io.searchbox.annotations.JestId;
 import org.jongo.marshall.jackson.oid.MongoId;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -12,6 +12,7 @@ import java.util.List;
 public class Installation {
 
     @MongoId
+    @JestId
     private String _id;
     private String nom;
     private Adresse adresse;
@@ -19,7 +20,7 @@ public class Installation {
     private boolean multiCommune;
     private int nbPlacesParking;
     private int nbPlacesParkingHandicapes;
-    private Date dateMiseAJourFiche;
+    private String dateMiseAJourFiche;
     private List<Equipement> equipements;
 
     public String get_id() {
@@ -78,11 +79,11 @@ public class Installation {
         this.nbPlacesParkingHandicapes = nbPlacesParkingHandicapes;
     }
 
-    public Date getDateMiseAJourFiche() {
+    public String getDateMiseAJourFiche() {
         return dateMiseAJourFiche;
     }
 
-    public void setDateMiseAJourFiche(Date dateMiseAJourFiche) {
+    public void setDateMiseAJourFiche(String dateMiseAJourFiche) {
         this.dateMiseAJourFiche = dateMiseAJourFiche;
     }
 
