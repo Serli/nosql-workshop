@@ -6,6 +6,7 @@ import net.codestory.http.annotations.Get;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
+import nosql.workshop.services.SearchService;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,10 +17,12 @@ import java.util.List;
 public class InstallationResource {
 
     private final InstallationService installationService;
+    private final SearchService searchService;
 
     @Inject
-    public InstallationResource(InstallationService installationService) {
+    public InstallationResource(InstallationService installationService, SearchService searchService) {
         this.installationService = installationService;
+        this.searchService = searchService;
     }
 
 
@@ -27,6 +30,8 @@ public class InstallationResource {
     @Get("")
     public List<Installation> list(Context context) throws IOException {
         return this.installationService.list();
+        // TODO make it work
+        //return this.searchService.list();
     }
 
     @Get("/:numero")
