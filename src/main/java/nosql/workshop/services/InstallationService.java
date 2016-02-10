@@ -12,6 +12,7 @@ import org.jongo.MongoCollection;
 
 import net.codestory.http.Context;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,27 +54,39 @@ public class InstallationService {
 
     public InstallationsStats stats() {
         InstallationsStats stats = new InstallationsStats();
-        stats.setTotalCount(
-                installations.count()
-        );
+
+        long total = installations.count();
+        stats.setTotalCount(total);
+        System.out.println("Debug total : " + total);
+
         /*stats.setInstallationWithMaxEquipments(
                 installations.aggregate("{$unwind: '$equipements'}")
                     .and("$group: {_id: '$nom', sum: {$sum: 1}))")
+                    .and("$sort: {sum: -1")
                     .and("")
         );*/
 
-        stats.setAverageEquipmentsPerInstallation(
-                installations.aggregate("{$unwind: '$equipements'}")
-                        .and("$group: {_id: '$nom', sum: {$sum: 1}))")
-                        .and("$group: {_id: 0, avg: {'$avg' : '$sum'").as(Average.class).next().getAverage());
+        double moyenne = installations.aggregate("{$unwind : '$equipements'}")
+                .and("{ $group : { _id : '$_id', total : { $sum : 1 } } }")
+                .and("{ $group : { _id : 0, average : { $avg : '$total' } } }")
+                .and("{ $project : { _id : 0, average : 1 } }")
+                .as(Average.class).next().getAverage();
+        System.out.println("Debug moyenne : " + moyenne);
+        stats.setAverageEquipmentsPerInstallation(moyenne);
 
-        stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind:'$equipements'}")
+        ArrayList<CountByActivity> listCount = Lists.newArrayList(installations.aggregate("{$unwind:'$equipements'}")
                 .and("{$unwind: '$equipements.activites'}")
                 .and("{$group: {_id: '$equipements.activites', total:{$sum : 1}}}")
                 .and("{$project: {activite: '$_id', total : 1}}")
-                .as(CountByActivity.class).iterator()));
+                .as(CountByActivity.class).iterator());
+        System.out.println("Debug activité : " + listCount.get(0).getActivite());
+        System.out.println("Debug nb instal : " + listCount.get(0).getTotal());
+        stats.setCountByActivity(listCount);
 
         return stats;
     }
 
+    public static class IDContainer {
+        public String id;
+    }
 }
