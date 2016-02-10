@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.SimpleTimeZone;
 
 import nosql.workshop.connection.ESConnectionUtil;
@@ -98,12 +99,33 @@ public class CsvToMongoToElastic {
 				source.setNbPlacesParking(Integer.parseInt(((String)installation.getString("nbPlacesParking")).length() > 0 ? (String)installation.getString("nbPlacesParking") : "0"));
 				source.setNbPlacesParkingHandicapes(Integer.parseInt(((String)installation.getString("nbPlacesParkingHandicapes")).length() > 0 ? (String)installation.getString("nbPlacesParkingHandicapes") : "0"));
 				source.setNom((String)installation.getString("nom"));
+				source.setEquipements(this.getEquipements((BasicDBList)installation.get("equipements")));
 				Index index = new Index.Builder(source).index("installations").type("installation").build();
 				this.elasticClient.execute(index);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private List<Equipement> getEquipements(BasicDBList equipements) {
+		List<Equipement> eqs = new ArrayList<Equipement>();
+		for (Object equipement : equipements) {
+			BasicDBObject objEquipement = (BasicDBObject)equipement;
+			Equipement e = new Equipement();
+			e.setFamille(objEquipement.getString("famille"));
+			e.setNom(objEquipement.getString("nom"));
+			e.setNumero(objEquipement.getString("numero"));
+			e.setType(objEquipement.getString("type"));
+			BasicDBList activitesList = (BasicDBList)objEquipement.get("activites");
+			List<String> activites = new ArrayList<String>();
+			for(Object act : activitesList) {
+				activites.add((String)act);
+			}
+			e.setActivites(activites);
+			eqs.add(e);
+		}
+		return eqs;
 	}
 
 	public void run(String filename, String name) {
@@ -196,11 +218,11 @@ public class CsvToMongoToElastic {
 
 	public static void main(String[] args) {
 		CsvToMongoToElastic obj = new CsvToMongoToElastic();
-		obj.collection.drop();
-		obj.collection.createIndex(new BasicDBObject("$**", "text"));
-		obj.saveToMongo();
-		obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
-		//obj.saveToElastic();
+		//obj.collection.drop();
+		//obj.collection.createIndex(new BasicDBObject("$**", "text"));
+		//obj.saveToMongo();
+		//obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
+		obj.saveToElastic();
 		//obj.importTowns();
 	}
 
