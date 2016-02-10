@@ -54,8 +54,6 @@ public class InstallationResource {
     }
 
     @Get("/stats")
-    public InstallationsStats stats() {
-        return installationService.stats();
-    }
+    public InstallationsStats stats() { return installationService.stats(); }
 
 }

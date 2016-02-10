@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObject;
 import net.codestory.http.Context;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.bson.types.ObjectId;
@@ -60,15 +61,26 @@ public class InstallationService {
     }
 
     public InstallationsStats stats() {
-        InstallationsStats stats = new InstallationsStats();
-        /*stats.setAverageEquipmentsPerInstallation(installations.aggregate("{$unwind: \"$equipements\"}")
-                .and("{$group: {numero: \"$nom\", sum:{$sum : 1}}}")
-                .and("{$group: {numero: 0, avg:{$avg : 1}}}").as(Double.class));*/
-        stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
+        InstallationsStats installationsStats = new InstallationsStats();
+        installationsStats.setCountByActivity(
+                Lists.newArrayList(installations
+                .aggregate("{$unwind: \"$equipements\"}")
                 .and("{$unwind: \"$equipements.activites\"}")
                 .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
                 .and("{$project: {activite: \"$_id\", total : 1}}")
                 .as(CountByActivity.class).iterator()));
-        return stats;
+        installationsStats.setInstallationWithMaxEquipments(installations.findOne("{ _id : # }", installations
+                .aggregate("{ $project : { nbEquip : { $size: '$equipements' } } }")
+                .and("{ $sort : { nbEquip : -1 } }")
+                .and("{ $limit : 1 }")
+                .as(Installation.class).next().get_id()).as(Installation.class));
+        installationsStats.setAverageEquipmentsPerInstallation(installations
+                .aggregate("{$unwind : '$equipements'}")
+                .and("{ $group : { _id : '$_id', total : { $sum : 1 } } }")
+                .and("{ $group : { _id : 0, average : { $avg : '$total' } } }")
+                .and("{ $project : { _id : 0, average : 1 } }")
+                .as(Average.class).next().getAverage());
+        installationsStats.setTotalCount(installations.count());
+        return installationsStats;
     }
 }

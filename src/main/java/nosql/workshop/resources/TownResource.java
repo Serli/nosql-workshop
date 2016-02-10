@@ -31,13 +31,11 @@ public class TownResource {
 
     @Get("suggest/:text")
     public List<TownSuggest> suggest(String text) {
-
         return searchService.suggest(text);
     }
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-
         return searchService.getLocation(townName);
     }
 }
