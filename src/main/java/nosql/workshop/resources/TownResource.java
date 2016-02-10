@@ -12,18 +12,20 @@ import java.util.List;
  */
 public class TownResource {
 
+    private final SearchService searchService;
 
     @Inject
-    public TownResource() {
+    public TownResource(SearchService searchService) {
+        this.searchService = searchService;
     }
 
     @Get("suggest/:text")
     public List<TownSuggest> suggest(String text) {
-        return null;
+        return searchService.suggest(text);
     }
 
     @Get("location/:townName")
     public Double[] getLocation(String townName){
-        return null;
+        return searchService.getLocation(townName);
     }
 }
