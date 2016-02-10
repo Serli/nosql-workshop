@@ -2,18 +2,29 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.DBObject;
 
+import net.codestory.http.Context;
+import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.Average;
+import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 
-import org.jongo.Find;
+import org.elasticsearch.action.count.CountAction;
+import org.jongo.Aggregate;
+import org.jongo.Aggregate.ResultsIterator;
+import org.jongo.FindOne;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
+import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.
@@ -33,10 +44,7 @@ public class InstallationService {
 	}
 
 	public Installation random() {
-		long n = installations.count();
-		MongoCursor<Installation> all = installations.find().limit(1).skip((int)Math.floor(Math.random()*n)).as(Installation.class);
-		return all.count() > 0 ? all.next() : null;
-		//return installations.findOne().as(Installation.class);
+		return installations.findOne().as(Installation.class);
 	}
 
 	public List<Installation> list() {
@@ -72,13 +80,40 @@ public class InstallationService {
 	}
 
 	public InstallationsStats stats() {
-		/*InstallationsStats i = new InstallationsStats();
-		i.getTotalCount();
-		ResultsIterator<InstallationsStats> all = installations.aggregate("{totalCount: {$sum : 1}, countByActivity: [{$group : {activite : '$equipements.activites', total : {$sum : 1}}}]}").as(InstallationsStats.class);
-		while (all.hasNext()) {
-			installations.add(all.next());
+		InstallationsStats i = new InstallationsStats();
+		ResultsIterator<CountByActivity> allTotal = this.installations.aggregate("{$group: {_id: null, total: {$sum: 1}}}").as(CountByActivity.class);
+		
+		while (allTotal.hasNext()) {
+			CountByActivity cByA = allTotal.next();
+			i.setTotalCount(cByA.getTotal());
 		}
-		return installations;*/
-		return null;
+		
+		Iterator<CountByActivity> allActivities = this.installations.aggregate("{ $unwind: \"$equipements\" }")
+    			.and("{ $unwind: \"$equipements.activites\" }")
+    			.and("{ $group: { _id: \"$equipements.activites\", total: {$sum: 1}}}")
+    			.and("{ $project: { _id: 0, activite: \"$_id\", total: 1 }}")
+    			.as(CountByActivity.class);
+		
+    	List<CountByActivity> list = new ArrayList<CountByActivity>();
+    	
+    	while(allActivities.hasNext()) {
+    		CountByActivity countAct = allActivities.next();
+    		list.add(countAct);
+    	}
+    	i.setCountByActivity(list);
+    	
+    	Iterator<Average> allEquipements = this.installations.aggregate("{$group: {_id: null, average: {$avg: {$size: \"$equipements\"}}}}")
+				.as(Average.class);
+		 
+    	Average average = allEquipements.next();
+		i.setAverageEquipmentsPerInstallation(average.getAverage());
+
+		Iterator<Installation> max = this.installations.aggregate("{$project: {_id : 1, nom : 1, adresse : 1, multiCommune : 1, nbPlacesParking : 1, nbPlacesParkingHandicapes : 1, dateMiseAJourFiche : 1, equipements : 1, taille : {$size : \"$equipements\"}}}")
+				.and("{$sort: {\"taille\": -1}}")
+				.as(Installation.class);
+		
+		i.setInstallationWithMaxEquipments(max.next());
+		
+		return i;
 	}
 }
