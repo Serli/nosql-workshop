@@ -34,9 +34,22 @@ public class InstallationService {
         return this.installations.findOne().as(Installation.class);
     }
 
-	public List<Installation> search(Context context) {
-		
-		return null;
+public List<Installation> search(String string) {
+		List<Installation> installationList = new ArrayList<Installation>();
+		MongoCursor<Installation> cursor = this.installations.find("{$text: {$search: '" + string + "',$language : 'french'}}").as(Installation.class);
+		while (cursor.hasNext()) {
+			installationList.add(cursor.next());
+		}
+		return installationList;
+	}
+
+	public List<Installation> geosearch(String lat, String lng, String distance) {
+		List<Installation> installationList = new ArrayList<Installation>();
+		MongoCursor<Installation> cursor = this.installations.find("{ 'location' : { $near : { $geometry : { type : 'Point' ,coordinates : [ "+lng+" , "+lat+" ]}, $maxDistance : "+distance+"}}}").as(Installation.class);
+				while (cursor.hasNext()) {
+			installationList.add(cursor.next());
+		}
+		return installationList;
 	}
 
 	public List<Installation> list(Context context) {
