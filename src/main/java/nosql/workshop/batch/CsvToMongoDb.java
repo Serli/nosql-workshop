@@ -16,22 +16,27 @@ import static java.util.Arrays.asList;
  */
 public class CsvToMongoDb {
 
+    /**
+     * Batch CsvToMongoDb - imports installation CSV data into the database.
+     * @param args args
+     */
     public static void main(String[] args) {
         MongoClient mongoClient = new MongoClient();
-
         MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
         final MongoCollection<Document> dbCollection = db.getCollection("installations");
+
         Document doc = new Document();
 
-        // Imports the installation
+        // Import installations
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/installations.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             reader.lines()
-                    .skip(1)
-                    .filter(line -> line.length() > 0)
-                    .map(line -> line.split("\",\""))
-                    .forEach(columns -> {
+                    .skip(1) // Skip the header line
+                    .filter(line -> line.length() > 0) // filter empty lines
+                    .map(line -> line.substring(1, line.length() -1)) // first and last characters are double quotes
+                    .map(line -> line.split("\",\"")) // each field is separeted by ","
+                    .forEach(columns -> { // for each line
                             parseDocInstallation(columns, doc);
                             dbCollection.insertOne(doc);
                             // Clear the document - more efficient than creating a new instance
@@ -43,6 +48,7 @@ public class CsvToMongoDb {
             throw new UncheckedIOException(e);
         }
 
+        // Import equipements
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/equipements.csv");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
@@ -52,7 +58,7 @@ public class CsvToMongoDb {
                     .map(line -> line.split(","))
                     .forEach(columns -> {
                         parseDocEquipement(columns, doc);
-                        dbCollection.updateOne(
+                        dbCollection.updateOne( // we add the parsed equipment to its installation
                                 new Document().append("_id", columns[2]),
                                 new Document().append("$addToSet",
                                         new Document().append("equipements", doc)
@@ -65,6 +71,7 @@ public class CsvToMongoDb {
             throw new UncheckedIOException(e);
         }
 
+        // Import activities
         try (InputStream inputStream = CsvToMongoDb.class.getResourceAsStream("/batch/csv/activites.csv");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
@@ -73,7 +80,7 @@ public class CsvToMongoDb {
                     .filter(line -> line.length() > 0)
                     .map(line -> line.split("\",\""))
                     .forEach(columns -> {
-                        dbCollection.updateOne(
+                        dbCollection.updateOne( // we add the parsed activity to its equipment
                                 new Document().append("equipements",
                                         new Document("$elemMatch",
                                                 new Document("numero", Utils.cleanString(columns[2]))
@@ -88,6 +95,9 @@ public class CsvToMongoDb {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+
+        // Creates a 2DSphere index
+        dbCollection.createIndex(new Document("location", "2dsphere"));
     }
 
     /**
@@ -98,7 +108,7 @@ public class CsvToMongoDb {
     private static void parseDocInstallation(String[] line, Document document) {
         // We consider the csv file coherent at all times
         document.append("_id", Utils.cleanString(line[1]))
-                .append("nom", Utils.cleanString(line[0].substring(1)))
+                .append("nom", Utils.cleanString(line[0]))
                 .append("adresse",
                         new Document().append("numero", Utils.cleanString(line[6]))
                                 .append("voie", Utils.cleanString(line[7]))
@@ -109,8 +119,8 @@ public class CsvToMongoDb {
                 new Document().append("type", "Point")
                         .append("coordinates", asList(Double.parseDouble(Utils.cleanString(line[9])), Double.parseDouble(Utils.cleanString(line[10]))))
         ).append("multiCommune", "Oui".equals(Utils.cleanString(line[16])))
-                .append("nbPlacesParking", getIntValue(line[17]))
-                .append("nbPlacesParkingHandicapes", getIntValue(line[18]))
+                .append("nbPlacesParking", Utils.getIntValue(line[17]))
+                .append("nbPlacesParkingHandicapes", Utils.getIntValue(line[18]))
         ;
     }
 
@@ -124,11 +134,6 @@ public class CsvToMongoDb {
                 .append("nom", line[5])
                 .append("type", line[7])
                 .append("famille", line[9]);
-    }
-
-    private static int getIntValue(String toClean) {
-        String val = Utils.cleanString(toClean);
-        return val.isEmpty() ? 0 : Integer.parseInt(val);
     }
 
 }
