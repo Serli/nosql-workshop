@@ -30,6 +30,7 @@ public class MongoDbToElasticSearch {
         // Get all installations and index them in ES using Jest
         MongoCursor<Installation> all = installations.find().as(Installation.class);
         Index index = null;
+        // TODO filtrer les dates pour éviter les problèmes de conversion
         try {
             while(all.hasNext()) {
                 Installation inst = all.next();
