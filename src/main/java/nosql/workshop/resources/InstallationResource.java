@@ -1,6 +1,7 @@
 package nosql.workshop.resources;
 
 import com.google.inject.Inject;
+
 import net.codestory.http.Context;
 import net.codestory.http.annotations.Get;
 import nosql.workshop.model.Installation;
@@ -42,7 +43,7 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
+    	return installationService.search(context.query().get("query"));
 
     }
 
