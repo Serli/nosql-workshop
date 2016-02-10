@@ -1,14 +1,25 @@
 package nosql.workshop.services;
 
+
 import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.util.JSON;
+
+import nosql.workshop.connection.ESConnectionUtil;
+import nosql.workshop.model.Equipement;
+import nosql.workshop.model.Installation;
+
+import nosql.workshop.model.stats.CountByActivity;
+
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import com.mongodb.BasicDBObject;
 
 import net.codestory.http.Context;
-import nosql.workshop.model.Equipement;
-import nosql.workshop.model.Installation;
-import nosql.workshop.model.stats.CountByActivity;
+
 import nosql.workshop.model.stats.InstallationsStats;
 
 import org.jongo.Find;
@@ -16,11 +27,17 @@ import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 import org.omg.CORBA.SystemException;
 
+import io.searchbox.client.JestClient;
+import io.searchbox.client.JestResult;
+import io.searchbox.core.Search;
+
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
 import java.util.function.Consumer;
 
 import static nosql.workshop.model.Installation.*;
@@ -62,6 +79,28 @@ public class InstallationService {
     	return installation;
     }
     
+    public List<Installation> search(String search){
+    	JestClient client = ESConnectionUtil.createClient("http://localhost:9200");
+    	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    	searchSourceBuilder.query(QueryBuilders.queryString(search));
+    	 
+    	Search searching = (Search) new Search.Builder(searchSourceBuilder.toString())
+    	                                // multiple index or types can be added.
+    	                                .addIndex("installations")
+    	                                .addType("installation")
+    	                                .build();
+    	 
+    	try {
+			JestResult result = client.execute(searching);
+			System.out.println(result.getSourceAsObjectList(Installation.class));
+			return result.getSourceAsObjectList(Installation.class);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return null;
+    }
+
     public List<Installation> geosearch(Context context) {
     	double lat = Double.parseDouble(context.get("lat"));
     	double lng = Double.parseDouble(context.get("lng"));

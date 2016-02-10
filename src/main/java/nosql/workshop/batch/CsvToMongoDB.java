@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
-
+import java.util.Date;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -42,14 +44,21 @@ public class CsvToMongoDB {
 				String[] installs = line.split(cvsSplitBy);
 
 				installs[0]=installs[0].substring(1, installs[0].length());
-				System.out.println("Installation [name= " + installs[0] + "]");
+				if(installs[28].length()<10){installs[28]="2014-05-06";}
 				DBObject installations = new BasicDBObject().append("_id", installs[1])
 						.append("nom", installs[0])
-						.append("Commune", installs[2])
+						.append("adresse", new BasicDBObject().append("numero", installs[6])
+											.append("voie", installs[7])
+											.append("lieuDit", installs[5])
+											.append("codePostal", installs[4])
+											.append("commune", installs[2]))
 						.append("location", new BasicDBObject("type", "Point")
 											.append("coordinates", Arrays.asList(Double.valueOf(installs[10]), Double.valueOf(installs[9]))))
-						.append("Code Postal", installs[4])
-						.append("Nbequ", installs[26]);
+						.append("multiCommune", "Oui".equals(installs[16]))
+						.append("nbPlacesParking", installs[17].isEmpty() ? null : Integer.valueOf(installs[17]))
+						.append("nbPlacesParkingHandicapes", installs[18].isEmpty() ? null : Integer.valueOf(installs[18]))
+						.append("dateMiseAJourFiche",installs.length < 29 || installs[28].isEmpty()? null :Date.from(
+								LocalDate.parse(installs[28].substring(0, 10)).atStartOfDay(ZoneId.of("UTC")).toInstant()));
 				col.insert(installations);
 			}
 		} catch (FileNotFoundException e) {
@@ -77,12 +86,15 @@ public class CsvToMongoDB {
 				String[] equ = line.split(cvsSplitBy);
 
 				equ[0]=equ[0].substring(1, equ[0].length());
-				System.out.println("Equipement [name= " + equ[5] + "]");
 				
-				BasicDBObject equip = new BasicDBObject().append("_id", equ[4]).append("nom", equ[5]);
+				BasicDBObject equip = new BasicDBObject().append("_id", equ[4])
+						.append("nom", equ[5])
+						.append("numero", equ[2])
+						.append("type", equ[7])
+						.append("famille", equ[9]);
 				
 				col.update(new BasicDBObject("_id", equ[2]), 
-						new BasicDBObject("$push", new BasicDBObject("Equipements", equip)));
+						new BasicDBObject("$push", new BasicDBObject("equipements", equip)));
 				
 			}
 
@@ -113,10 +125,8 @@ public class CsvToMongoDB {
 				act[0]=act[0].substring(1, act[0].length());
 				
 				//BasicDBObject acti = new BasicDBObject().append("_id", act[4]).append("nom", act[5]);
-				BasicDBObject equipement = new BasicDBObject("Equipements", new BasicDBObject("$elemMatch", new BasicDBObject("_id", act[2].trim())));
-				BasicDBObject update = new BasicDBObject("$push", new BasicDBObject("Equipements.$.Activites", act[5]));
-				System.out.println(equipement);
-				System.out.println(update);
+				BasicDBObject equipement = new BasicDBObject("equipements", new BasicDBObject("$elemMatch", new BasicDBObject("_id", act[2].trim())));
+				BasicDBObject update = new BasicDBObject("$push", new BasicDBObject("equipements.$.activites", act[5]));
 				
 				col.update(equipement, update);
 				
