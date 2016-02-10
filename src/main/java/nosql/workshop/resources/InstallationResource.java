@@ -7,31 +7,35 @@ import net.codestory.http.errors.NotFoundException;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
+import nosql.workshop.services.SearchService;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
  * Resource permettant de gérer l'accès à l'API pour les Installations.
  */
 public class InstallationResource {
-    private InstallationService service;
+    private final InstallationService installationService;
+    private final SearchService searchService;
 
     @Inject
-    public InstallationResource(InstallationService service) {
-        this.service = service;
+    public InstallationResource(InstallationService installationService, SearchService searchService) {
+        this.installationService = installationService;
+        this.searchService = searchService;
     }
 
 
     @Get("/")
     @Get("")
     public List<Installation> list(Context context) {
-        List<Installation> results = service.getAll();
+        List<Installation> results = installationService.getAll();
         return results;
     }
 
     @Get("/:numero")
     public Installation get(String numero) {
-        Installation result = service.getById(numero);
+        Installation result = installationService.getById(numero);
 
         if (result == null) {
             return NotFoundException.notFoundIfNull(result);
@@ -43,12 +47,18 @@ public class InstallationResource {
 
     @Get("/random")
     public Installation random() {
-        return service.getRandom();
+        return installationService.getRandom();
     }
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return null;
+        String query = context.get("query");
+        try {
+            return searchService.get(query);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
     }
 
@@ -63,12 +73,12 @@ public class InstallationResource {
 //            throw new BadRequestException();
 //        }
 
-        return service.getGeoSearchResults(lat, lng, distance);
+        return installationService.getGeoSearchResults(lat, lng, distance);
 
     }
 
     @Get("/stats")
     public InstallationsStats stats() {
-        return service.getStats();
+        return installationService.getStats();
     }
 }
