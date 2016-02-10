@@ -87,6 +87,7 @@ public class CsvToMongoToElastic {
 				source.setAdresse(adresse);
 				source.setDateMiseAJourFiche((Date)installation.get("dateMiseAJourFiche"));
 				source.setEquipements(new ArrayList<Equipement>());
+				source.set_id(installation.getString("_id"));
 				BasicDBObject loc = (BasicDBObject)installation.get("location");
 				BasicDBList coordinates = (BasicDBList)loc.get("coordinates");
 				Location location = new Location();
@@ -179,7 +180,7 @@ public class CsvToMongoToElastic {
 			.map(line -> line.split(splitPattern))
 			.forEach(columns -> {
 				TownSuggest ts = new TownSuggest(columns[1].replace("\"", ""), Arrays.asList(new Double[] {Double.parseDouble(columns[6]), Double.parseDouble(columns[7])}));
-				Index index = new Index.Builder(ts).index("towns").type("town").build();
+				Index index = new Index.Builder(ts).index("towns").type("town").id(columns[0]).build();
 				try {
 					this.elasticClient.execute(index);
 				} catch (Exception e) {
