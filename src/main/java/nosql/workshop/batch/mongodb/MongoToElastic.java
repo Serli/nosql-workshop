@@ -32,6 +32,7 @@ public class MongoToElastic {
             DBObject object = cursor.next();
             String id = object.get("_id").toString();
             object.removeField("_id");
+            object.put("id", id);
             list.add(new Index.Builder(object).id(id).build());
         }
         cursor.close();
