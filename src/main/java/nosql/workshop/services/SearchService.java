@@ -44,17 +44,18 @@ public class SearchService {
                "}";
 
        Search search = new Search.Builder(query).addIndex("towns").addType("town").build();
+       List<TownSuggest> result = null;
 
        try {
            SearchResult searchResult = client.execute(search);
            if (searchResult.isSucceeded()) {
                List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
-               return hits.stream().map(townHit -> townHit.source).collect(Collectors.toList());
+               result = hits.stream().map(townHit -> townHit.source).collect(Collectors.toList());
            }
        } catch (IOException e) {
            throw new RuntimeException(e);
        }
-       return null;
+       return result;
    }
 
     public List<Installation> search(Context context) {
@@ -71,13 +72,14 @@ public class SearchService {
                 "}";
 
         Search search = new Search.Builder(query).addIndex("installations").addType("installation").build();
+        List<Installation> listInstallation = null;
 
         try {
             SearchResult searchResult = client.execute(search);
             if (searchResult.isSucceeded()) {
                 List<SearchResult.Hit<Installation, Void>> hits = searchResult.getHits(Installation.class);
                 if (!hits.isEmpty()) {
-                    List<Installation> listInstallation = hits.stream().map(sr -> sr.source).collect(Collectors.toList());
+                    listInstallation = hits.stream().map(sr -> sr.source).collect(Collectors.toList());
                     //assez horrible, mais nous manquons de temps
                     listInstallation.stream().forEach(ins -> {
                         if(ins.getEquipements() == null){
@@ -88,14 +90,14 @@ public class SearchService {
                         }
                         if(ins.getAdresse().getNumero() == null){
                             ins.getAdresse().setNumero("");
-                        }});
-                    return listInstallation;
+                        }
+                    });
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return null;
+        return listInstallation;
     }
 
     public Double[] getLocation(String townName) {
@@ -109,17 +111,18 @@ public class SearchService {
                 "}";
 
         Search search = new Search.Builder(query).addIndex("towns").addType("town").build();
+        Double[] result = null;
 
         try {
             SearchResult searchResult = client.execute(search);
             List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
             if (!hits.isEmpty()) {
                 SearchResult.Hit<TownSuggest, Void> townHit = hits.get(0);
-                return townHit.source.getLocation();
+                result = townHit.source.getLocation();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return null;
+        return result;
     }
 }
