@@ -36,12 +36,7 @@ public class InstallationResource {
     @Get("/:numero")
     public Installation get(String numero) {
         Installation result = installationService.getById(numero);
-
-        if (result == null) {
-            return NotFoundException.notFoundIfNull(result);
-        }
-
-        return result;
+        return  NotFoundException.notFoundIfNull(result);
     }
 
 
