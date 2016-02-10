@@ -27,10 +27,10 @@ public class MongoDbToElasticSearch {
 
         try {
             // Si la collection existe déjà, on la supprime
-            /**boolean indexExists = client.execute(new IndicesExists.Builder(COL_INSTALLATIONS).build()).isSucceeded();
+            boolean indexExists = client.execute(new IndicesExists.Builder(COL_INSTALLATIONS).build()).isSucceeded();
             if (indexExists) {
                 client.execute(new DeleteIndex.Builder(COL_INSTALLATIONS).build());
-            }**/
+            }
 
             // Récupération des données en base MongoDb
             List<Index> source = listInstallations();
