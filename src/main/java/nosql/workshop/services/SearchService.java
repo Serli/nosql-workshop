@@ -1,6 +1,7 @@
 package nosql.workshop.services;
 
 import io.searchbox.client.JestClient;
+import io.searchbox.client.JestResult;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
 import io.searchbox.core.Suggest;
@@ -15,6 +16,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,9 +24,8 @@ import java.util.stream.Collectors;
  * Search service permet d'encapsuler les appels vers ElasticSearch
  */
 public class SearchService {
-	
+
 	public List<TownSuggest> suggest(String text) {
-		
-        return null;
-    }
+		return null;
+	}
 }
