@@ -3,8 +3,8 @@ package nosql.workshop.services;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 import org.jongo.MongoCollection;
@@ -62,8 +62,10 @@ public class InstallationService {
         }
 
         // average
-        double sum = installations.find("{equipements: {$exists:1}}").projection("{equipements:#}", 1).as(Equipement.class).count();
-        double averageEquipmentsPerInstallation = sum / totalCount;
+        double averageEquipmentsPerInstallation = installations
+                .aggregate("{$project:{count:{$size:'$equipements'}}}")
+                .and("{$group:{_id:'0', average:{$avg:'$count'}}}")
+                .as(Average.class).next().getAverage();
 
         // count by activity
         List<CountByActivity> countByActivityList = Lists.newArrayList(
@@ -71,6 +73,7 @@ public class InstallationService {
                 .and("{$unwind: '$equipements.activites'}")
                 .and("{$group: {_id: '$equipements.activites', total:{$sum : 1}}}")
                 .and("{$project: {activite: '$_id', total : 1}}")
+                .and("{$sort: {total: -1}}")
                 .as(CountByActivity.class).iterator());
 
 
