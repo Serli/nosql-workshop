@@ -1,6 +1,6 @@
 package nosql.workshop.model;
 
-
+import com.google.gson.annotations.SerializedName;
 import org.jongo.marshall.jackson.oid.MongoId;
 
 import java.util.Date;
@@ -12,6 +12,7 @@ import java.util.List;
 public class Installation {
 
     @MongoId
+    @SerializedName("id")
     private String _id;
     private String nom;
     private Adresse adresse;
@@ -92,6 +93,21 @@ public class Installation {
 
     public void setEquipements(List<Equipement> equipements) {
         this.equipements = equipements;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "_id='" + _id + '\'' +
+                ", nom='" + nom + '\'' +
+                ", adresse=" + adresse +
+                ", location=" + location +
+                ", multiCommune=" + multiCommune +
+                ", nbPlacesParking=" + nbPlacesParking +
+                ", nbPlacesParkingHandicapes=" + nbPlacesParkingHandicapes +
+                ", dateMiseAJourFiche=" + dateMiseAJourFiche +
+                ", equipements=" + equipements +
+                '}';
     }
 
     public static class Adresse {

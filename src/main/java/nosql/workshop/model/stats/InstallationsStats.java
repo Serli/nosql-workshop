@@ -42,4 +42,12 @@ public class InstallationsStats {
     public void setAverageEquipmentsPerInstallation(double averageEquipmentsPerInstallation) {
         this.averageEquipmentsPerInstallation = averageEquipmentsPerInstallation;
     }
+
+    @Override
+    public String toString() {
+        return "{\n totalCount : " + totalCount + ", \n countByActivity : " + countByActivity.toString() +
+                "\n installationWithMaxEquipements : " + installationWithMaxEquipments.toString() +
+                "\n averageEquipmentsPerInstallation : " + averageEquipmentsPerInstallation +
+                "\n}";
+    }
 }
