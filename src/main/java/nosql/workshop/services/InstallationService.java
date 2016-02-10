@@ -48,6 +48,7 @@ public class InstallationService {
     }
 
     public List<Installation> geosearch(String lat, String lng, String distance) {
+         installations.ensureIndex("{ location : '2dsphere' } ");
          return Lists.newArrayList(installations.find("{'location' : { $near : { $geometry : { type : 'Point', coordinates: ["+lng+", "+lat+"]}, $maxDistance : "+distance+"}}}")
                 .as(Installation.class).iterator());
     }
@@ -56,20 +57,22 @@ public class InstallationService {
         InstallationsStats stats = new InstallationsStats();
 
         long total = installations.count();
-        stats.setTotalCount(total);
         System.out.println("Debug total : " + total);
+        stats.setTotalCount(total);
 
-        /*stats.setInstallationWithMaxEquipments(
-                installations.aggregate("{$unwind: '$equipements'}")
-                    .and("$group: {_id: '$nom', sum: {$sum: 1}))")
-                    .and("$sort: {sum: -1")
-                    .and("")
-        );*/
+        Installation installation = installations.aggregate("{$project: {equip: {$size: '$equipements'}}}")
+                .and("{$sort: {equip: -1}}")
+                .and("{$limit: 1}")
+                .as(Installation.class).next();
+        Installation maxInstall = installations.findOne("{_id: #}", installation.get_id())
+                .as(Installation.class);
+        System.out.println("Debug installation : " + installation.get_id());
+        stats.setInstallationWithMaxEquipments(maxInstall);
 
-        double moyenne = installations.aggregate("{$unwind : '$equipements'}")
-                .and("{ $group : { _id : '$_id', total : { $sum : 1 } } }")
-                .and("{ $group : { _id : 0, average : { $avg : '$total' } } }")
-                .and("{ $project : { _id : 0, average : 1 } }")
+        double moyenne = installations.aggregate("{$unwind: '$equipements'}")
+                .and("{$group: {_id : '$_id', total: {$sum : 1}}}")
+                .and("{$group: {_id : 0, average: {$avg : '$total'}}}")
+                .and("{$project: {_id : 0, average: 1}}")
                 .as(Average.class).next().getAverage();
         System.out.println("Debug moyenne : " + moyenne);
         stats.setAverageEquipmentsPerInstallation(moyenne);
@@ -84,9 +87,5 @@ public class InstallationService {
         stats.setCountByActivity(listCount);
 
         return stats;
-    }
-
-    public static class IDContainer {
-        public String id;
     }
 }
