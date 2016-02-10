@@ -1,0 +1,63 @@
+PUT /installations/
+{
+ "mappings": {
+   "installation": {
+     "_all": { "type": "string", "analyzer" : "french"},
+     "properties": {
+      "location": {
+         "properties": {
+           "coordinates": {
+             "type": "geo_point"
+           }
+         }
+       },
+       "nom": {
+         "type": "string",
+         "analyzer": "french"
+       },
+       "equipements": {
+         "properties": {
+           "activites": {
+             "type": "string",
+             "analyzer": "french"
+           },
+           "famille": {
+             "type": "string",
+             "analyzer": "french"
+           },
+           "nom": {
+             "type": "string",
+             "analyzer": "french"
+           },
+           "numero": {
+             "type": "string"
+           },
+           "type": {
+             "type": "string",
+             "analyzer": "french"
+           }
+         }
+       },
+       "adresse": {
+         "properties": {
+           "commune": {
+             "type": "string",
+             "analyzer": "french"
+           },
+           "lieuDit": {
+             "type": "string",
+             "analyzer": "french"
+           },
+           "numero": {
+             "type": "string"
+           },
+           "voie": {
+             "type": "string",
+             "analyzer": "french"
+           }
+         }
+       }
+     }
+   }
+ }
+}
