@@ -7,6 +7,7 @@ import net.codestory.http.Query;
 import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.MostEquipedInstallation;
+import nosql.workshop.model.stats.Average;
 import nosql.workshop.model.stats.CountByActivity;
 import nosql.workshop.model.stats.InstallationsStats;
 
@@ -122,10 +123,14 @@ public class InstallationService {
 		MostEquipedInstallation mostEquiped = it.next();
 		System.out.println(mostEquiped.get_id());
 		
-		Iterator<Object> itEquip = installations.aggregate(
+		Iterator<Average> itEquip = installations.aggregate(
 				"{$match:{\"equipements\":{$exists:true}}}")
-				.and("{$unwind:\"$equipements\"}")
-				.as(Object.class);
+				//.and("{$unwind:\"$equipements\"}")
+				.and("{$group:{_id:null,avgSize:{$avg:{$size:\"$equipements\"}}}}")
+				.and("{$project:{average:\"$avgSize\"}}")
+				.as(Average.class);
+		
+		Average avg = itEquip.next(); 
 		
 		Iterator<CountByActivity> countbyActivitiesIt = installations.aggregate(
 						"{$match: {\"equipements.activites\":{$exists : true}}}")
@@ -138,7 +143,7 @@ public class InstallationService {
 				.as(CountByActivity.class);
 		ArrayList<CountByActivity> activities = Lists.newArrayList(countbyActivitiesIt);
 		
-		double averageEquipements = Double.valueOf(Lists.newArrayList(itEquip).size())/Double.valueOf(count);
+		double averageEquipements = avg.getAverage();
 		Installation instWithMaxEquip = get(mostEquiped.get_id());
 
 		InstallationsStats ret = new InstallationsStats();
