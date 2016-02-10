@@ -7,8 +7,11 @@ import io.searchbox.client.JestResult;
 import io.searchbox.core.Search;
 import nosql.workshop.connection.ESConnectionUtil;
 import nosql.workshop.model.Installation;
+import nosql.workshop.model.suggest.TownSuggest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -63,5 +66,41 @@ public class SearchService {
         }
 
         return null;
+    }
+
+    public List<TownSuggest> getSuggestion(String text) throws IOException {
+        List<TownSuggest> townSuggests = new ArrayList<>();
+        JestClient client = ESConnectionUtil.createClient("");
+
+        String query = "{\n" +
+                "        \"query\": {\n"+
+                "           \"wildcard\": {\n"+
+                "               \"townName\": {\n"+
+                "                   \"value\": \"*" + text + "*\" \n" +
+                "               }\n"+
+                "           }\n" +
+                "       }\n" +
+                "}";
+
+        Search search = new Search.Builder(query)
+                .addIndex("towns")
+                .addType("town")
+                .build();
+
+        JestResult result = client.execute(search);
+        client.shutdownClient();
+
+        JsonArray hits = result.getJsonObject().get("hits").getAsJsonObject().get("hits").getAsJsonArray();
+
+        hits.forEach(h -> {
+            JsonObject hit = h.getAsJsonObject();
+            JsonObject town = hit.get("_source").getAsJsonObject();
+            String townName = town.get("townName").getAsString();
+            JsonArray location = town.get("location").getAsJsonArray();
+            TownSuggest suggest = new TownSuggest(townName, Arrays.asList(location.get(0).getAsDouble(), location.get(1).getAsDouble()));
+            townSuggests.add(suggest);
+        });
+
+        return townSuggests;
     }
 }
