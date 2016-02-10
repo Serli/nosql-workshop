@@ -22,5 +22,4 @@ public class Application {
         String port = providedPort == null ? "8080" : providedPort;
         webServer.start(Integer.valueOf(port));
     }
-
 }
