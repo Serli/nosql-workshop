@@ -8,6 +8,7 @@ import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
 import net.codestory.http.Context;
 import nosql.workshop.connection.ESConnectionUtil;
+import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.suggest.TownSuggest;
 import org.elasticsearch.action.suggest.SuggestRequestBuilder;
@@ -31,44 +32,29 @@ import java.util.stream.Stream;
 public class SearchService {
 
    public List<TownSuggest> suggest(String text) {
-       List<TownSuggest> list = new ArrayList<TownSuggest>();
        JestClient client = ESConnectionUtil.createClient("");
-
        String query = "{\n" +
                "        \"query\": {\n"+
                "           \"wildcard\": {\n"+
                "               \"townName\": {\n"+
-               "                   \"value\": \"*" + text + "*\" \n" +
+               "                   \"value\": \"" + text + "*\" \n" +
                "               }\n"+
                "           }\n" +
                "       }\n" +
                "}";
 
-       Search search = (Search) new Search.Builder(query)
-               .addIndex("towns")
-               .addType("town")
-               .build();
+       Search search = new Search.Builder(query).addIndex("towns").addType("town").build();
 
-       JestResult result = null;
        try {
-           result = client.execute(search);
+           SearchResult searchResult = client.execute(search);
+           if (searchResult.isSucceeded()) {
+               List<SearchResult.Hit<TownSuggest, Void>> hits = searchResult.getHits(TownSuggest.class);
+               return hits.stream().map(townHit -> townHit.source).collect(Collectors.toList());
+           }
        } catch (IOException e) {
-           e.printStackTrace();
+           throw new RuntimeException(e);
        }
-
-       JsonObject object = result.getJsonObject();
-       JsonArray hits = object.get("hits").getAsJsonObject().get("hits").getAsJsonArray();
-
-       for(int i = 0; i < hits.size(); i++){
-           JsonObject hit = hits.get(i).getAsJsonObject();
-           JsonObject town = hit.get("_source").getAsJsonObject();
-           String townName = town.get("townName").getAsString();
-           JsonArray location = town.get("location").getAsJsonArray();
-           Double[] ret = {location.get(0).getAsDouble(), location.get(1).getAsDouble()};
-           TownSuggest suggest = new TownSuggest(townName, Arrays.asList(ret));
-           list.add(suggest);
-       }
-       return list;
+       return null;
    }
 
     public List<Installation> search(Context context) {
@@ -92,6 +78,17 @@ public class SearchService {
                 List<SearchResult.Hit<Installation, Void>> hits = searchResult.getHits(Installation.class);
                 if (!hits.isEmpty()) {
                     List<Installation> listInstallation = hits.stream().map(sr -> sr.source).collect(Collectors.toList());
+                    //assez horrible, mais nous manquons de temps
+                    listInstallation.stream().forEach(ins -> {
+                        if(ins.getEquipements() == null){
+                            ins.setEquipements(new ArrayList<Equipement>());
+                        }
+                        if(ins.getAdresse().getVoie() == null){
+                            ins.getAdresse().setVoie("");
+                        }
+                        if(ins.getAdresse().getNumero() == null){
+                            ins.getAdresse().setNumero("");
+                        }});
                     return listInstallation;
                 }
             }
