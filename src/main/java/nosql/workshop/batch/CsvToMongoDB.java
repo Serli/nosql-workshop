@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.Cursor;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -60,7 +61,6 @@ public class CsvToMongoDB {
 								LocalDate.parse(installs[28].substring(0, 10)).atStartOfDay(ZoneId.of("UTC")).toInstant()));
 				col.insert(installations);
 			}
-
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -74,6 +74,8 @@ public class CsvToMongoDB {
 				}
 			}
 		}
+		
+		col.createIndex(new BasicDBObject("location", "2dsphere"));
 		
 		try {
 			cvsSplitBy = ",";
@@ -143,6 +145,7 @@ public class CsvToMongoDB {
 				}
 			}
 		}
+
 		
 		
 	}
