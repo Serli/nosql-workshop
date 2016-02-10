@@ -1,4 +1,4 @@
-Avant le transfert des données de MongoDB dans ElasticSearch, la requête suivante est à exécuter (elle permet d'effectuer des recherches malgré des fautes de frappe ou d'orthographe) :
+Avant le transfert des données de MongoDB dans ElasticSearch, la requête suivante est à exécuter :
 
 ```
 curl -X PUT http://localhost:9200/installations
@@ -33,9 +33,20 @@ curl -X PUT http://localhost:9200/installations
                             "analyzer": "french"
                         }
                     }
+                },
+                "location": {
+                    "properties": {
+                        "coordinates": {
+                            "type": "geo_point"
+                        }
+                    }
                 }
             }
         }
     }
 }
 ```
+
+Cette requête permet :
+* de préciser le type des coordonnées `geo_point`
+* d'autoriser les erreurs de saisies dans les recherches sur certains champs
