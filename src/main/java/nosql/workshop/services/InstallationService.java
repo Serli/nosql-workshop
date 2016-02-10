@@ -77,9 +77,9 @@ public class InstallationService {
         return stats;
     }
 
-    public List<Installation> geoSearch(Double latitude, Double longitude, Integer dist) {
+    public List<Installation> geoSearch(double latitude, double longitude, int dist) {
         installations.ensureIndex("{ location : '2dsphere' } ");
-        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + latitude + ", " + longitude + " ]}, $maxDistance : " + dist + "}}}").as(Installation.class).iterator());
+        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + longitude + ", " + latitude + " ]}, $maxDistance : " + dist + "}}}").as(Installation.class).iterator());
 
     }
 
@@ -88,19 +88,18 @@ public class InstallationService {
         String query = "{\n" +
                 "        \"query\": {\n"+
                 "           \"multi_match\": {\n"+
-                "               \"query\": \"" + context.query().get("query") + "\",\n" +
+                "               \"query\": \"" + context.query().get("query").toLowerCase() + "\",\n" +
                 "                    \"fields\": [\"_all\"] \n"+
                 "               }\n"+
                 "           }\n" +
-                "       }\n" +
                 "}";
+
         Search search = (Search) new Search.Builder(query)
                 .addIndex("installations")
                 .addType("installation")
                 .build();
 
         JestResult result = ESConnectionUtil.createClient("").execute(search);
-
 
         List<Installation> installations = new ArrayList<>();
 
@@ -111,12 +110,11 @@ public class InstallationService {
             JsonObject hit = hits.get(0).getAsJsonObject();
             JsonObject jsonObjectInstallation = hit.getAsJsonObject("_source");
             JsonObject jsonObjectLocation = jsonObjectInstallation.getAsJsonObject("location");
-
             JsonArray jsonArrayCoordinates = jsonObjectLocation.getAsJsonArray("coordinates");
-
            double[] coordinates = {jsonArrayCoordinates.get(0).getAsDouble(), jsonArrayCoordinates.get(1).getAsDouble()};
             installations.get(0).getLocation().setCoordinates(coordinates);
-        }
+            System.out.println(installations.get(0).get_id());
+    }
         return installations;
     }
 

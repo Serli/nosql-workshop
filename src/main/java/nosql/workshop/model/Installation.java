@@ -1,6 +1,7 @@
 package nosql.workshop.model;
 
 
+import io.searchbox.annotations.JestId;
 import org.jongo.marshall.jackson.oid.MongoId;
 
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public class Installation {
 
-    @MongoId
+    @MongoId @JestId
     private String _id;
     private String nom;
     private Adresse adresse;
