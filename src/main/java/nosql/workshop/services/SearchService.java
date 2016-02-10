@@ -48,7 +48,7 @@ public class SearchService {
         for(int i = 0; i < hits.size(); i++){
             JsonObject hit = hits.get(i).getAsJsonObject();
             JsonObject town = hit.get("_source").getAsJsonObject();
-            String townName = town.get("nameSuggest").getAsString();
+            String townName = town.get("nameSuggest").getAsString().toLowerCase();
             JsonArray location = town.get("townLocation").getAsJsonArray();
             Double[] ret = {location.get(0).getAsDouble(), location.get(1).getAsDouble()};
             TownSuggest suggest = new TownSuggest(townName, Arrays.asList(ret));
@@ -81,8 +81,7 @@ public class SearchService {
 
         JsonObject town = jsonObject.get("_source").getAsJsonObject();
         JsonArray location = town.get("townLocation").getAsJsonArray();
-        Double[] townLocation = {location.get(0).getAsDouble(), location.get(1).getAsDouble()};
 
-        return townLocation;
+        return new Double[]{location.get(0).getAsDouble(), location.get(1).getAsDouble()};
     }
 }

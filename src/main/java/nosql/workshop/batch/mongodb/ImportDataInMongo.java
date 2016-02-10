@@ -50,7 +50,7 @@ public class ImportDataInMongo {
                                 .append("commune", cleanString(column[2])))
                         .append("location", new BasicDBObject("type", "Point")
                                 .append("coordinates",
-                                        Arrays.asList(Double.valueOf(cleanString(column[10])), Double.valueOf(cleanString(column[9])))))
+                                        Arrays.asList(Double.valueOf(cleanString(column[9])), Double.valueOf(cleanString(column[10])))))
                         .append("multiCommune", "Oui".equals(column[16]))
                         .append("nbPlacesParking", column[17].isEmpty() ? null : Integer.valueOf(column[17]))
                         .append("nbPlacesParkingHandicapes", column[18].isEmpty() ? null : Integer.valueOf(column[18]))
