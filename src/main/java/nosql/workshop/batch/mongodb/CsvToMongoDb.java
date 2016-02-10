@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
  * Modified by Théophile Morin & Remy Ferre
  */
 public class CsvToMongoDb {
+
+
     public static void main(String[] args) {
         MongoCollection installations = getCollection();
         long finish, end, beg = System.currentTimeMillis(), start = System.currentTimeMillis();
@@ -34,7 +36,7 @@ public class CsvToMongoDb {
         end = System.currentTimeMillis();
         System.out.println("Done in " + (end - beg) + "ms.");
 
-        System.out.println("Computing activities...");
+        System.out.println("Computing activities... Please wait...");
         beg = System.currentTimeMillis();
         computeActivites(installations);
         end = System.currentTimeMillis();
@@ -43,23 +45,30 @@ public class CsvToMongoDb {
         finish = System.currentTimeMillis();
         System.out.println("Batch executed in " + (finish - start) + "ms.");
 
-        ensureIndexes();
+        ensureIndexes(installations);
     }
 
+    /**
+     * Retrieve the MongoDB collection
+     * @return The mongoDB collection
+     */
     private static MongoCollection getCollection() {
         MongoClient mongoClient = new MongoClient();
         MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
         MongoCollection installations = db.getCollection("installations");
         installations.drop();
+
         return installations;
     }
 
-    private static void ensureIndexes() {
-        MongoClient mongoClient = new MongoClient();
-        MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
-        //db.runCommand("");
-
+    /**
+     * Create index on location field.
+     * @param installations - The collection
+     */
+    private static void ensureIndexes(MongoCollection installations) {
+        installations.createIndex(new Document("location", "2dsphere"));
     }
+
 
     private static void computeInstallations(MongoCollection installations) {
         List<Document> instList;

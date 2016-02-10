@@ -9,8 +9,6 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.Index;
-import nosql.workshop.connection.ESConnectionUtil;
-import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,16 +22,19 @@ public class MongoDbToElasticSearch {
 
     public static void main(String[] args) {
 
+        //Connect to ElasticSearch
         final JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(new HttpClientConfig.Builder("http://localhost:9200")
                 .multiThreaded(true)
                 .readTimeout(400000)
                 .build());
-        JestClient client= factory.getObject(); //ESConnectionUtil.createClient("");
+        JestClient client= factory.getObject();
+
+        //Connect to MongoDB
         MongoClient mongoClient=new MongoClient("localhost",27017);
         DB db = mongoClient.getDB("nosql-workshop");
 
-
+        //Get the iterator over MongoDB elements & build the bulk to run in ElasticSearch
         DBCursor cursor=db.getCollection("installations").find();
         Bulk bulk = new Bulk.Builder()
                 .defaultIndex("installations")
@@ -49,6 +50,11 @@ public class MongoDbToElasticSearch {
         System.out.println("Batch successfully executed.");
     }
 
+    /**
+     * Iterate over the cursor to build a List of Index
+     * @param cursor - The DBcursor
+     * @return - The index List
+     */
     private static List<Index> getIndexes(DBCursor cursor){
         List<Index> indexes = new ArrayList<>();
         while(cursor.hasNext()){
@@ -56,6 +62,12 @@ public class MongoDbToElasticSearch {
         }
         return indexes;
     }
+
+    /**
+     * Create elastic Index from DBObject
+     * @param object - The DBObject
+     * @return an ElasticSearch index
+     */
     private static Index createIndex(DBObject object){
         String id = object.get("_id").toString();
         object.removeField("_id");

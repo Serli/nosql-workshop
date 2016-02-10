@@ -38,13 +38,14 @@ public class InstallationService {
     }
 
     public Installation get(String num) {
-        return installations.findOne("{_id: \""+num+"\"}").as(Installation.class);
+        return installations.findOne("{_id: \"" + num + "\"}").as(Installation.class);
     }
 
     public List<Installation> geosearch(String lat, String lng, String distance) {
+        installations.ensureIndex("{ location : '2dsphere' } ");
         return Lists.newArrayList(installations
-                .find("{\"location\" : { $near : { $geometry : { type : \"Point\", coordinates: ["+
-                        lng+", "+lat+"]}, $maxDistance : "+distance+"}}}")
+                .find("{\"location\" : { $near : { $geometry : { type : \"Point\", coordinates: [" +
+                        lng + ", " + lat + "]}, $maxDistance : " + distance + "}}}")
                 .as(Installation.class).iterator());
     }
 
@@ -75,7 +76,7 @@ public class InstallationService {
         return stats;
     }
 
-    public static class IDContainer{
+    public static class IDContainer {
         public String id;
     }
 }
