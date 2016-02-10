@@ -3,6 +3,7 @@ package nosql.workshop.batch.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.jongo.Jongo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +23,6 @@ public class ParserCSV2Mongo {
 
         MongoClient mongoClient = new MongoClient();
         MongoDatabase db = mongoClient.getDatabase("nosql-workshop");
-
         db.getCollection("installations").drop();
 
         try (InputStream inputStream = ParserCSV2Mongo.class.getResourceAsStream(pathInstallation);
@@ -100,6 +100,5 @@ public class ParserCSV2Mongo {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }

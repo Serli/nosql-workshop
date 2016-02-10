@@ -44,7 +44,8 @@ public class InstallationResource {
 
     @Get("/search")
     public List<Installation> search(Context context) {
-        return searchService.search();
+        String item = context.query().get("query");
+        return searchService.search(item);
 
     }
 

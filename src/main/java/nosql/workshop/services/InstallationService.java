@@ -74,6 +74,7 @@ public class InstallationService {
         Jongo jongo = new Jongo(db);
         String query = "{location:{$near:{$geometry:{type:'Point', coordinates: ["+lng+", "+lat+"]}, $maxDistance: "+distance+"}}}";
         MongoCollection installations = jongo.getCollection("installations");
+        installations.ensureIndex("{ \"location\" : \"2dsphere\" }");
         MongoCursor<Installation> all = installations.find(query).as(Installation.class);
         List<Installation> result = new ArrayList<>();
         for(Installation installation : all){

@@ -35,8 +35,29 @@ public class SearchService {
         this.installations = mongoDB.getJongo().getCollection(COLLECTION_NAME);
     }
 
-    public List<Installation> search(){
+    public List<Installation> search(String item){
         JestClient jestClient = ESConnectionUtil.createClient("");
+
+        String query = "{\n" +
+                " \"query\": {\n" +
+                "     \"multi_match\": {\n" +
+                "         \"query\": \"" + item + "\",\n" +
+                "         \"fields\": [\"_all\"]\n" +
+                "       }\n" +
+                "   }\n" +
+                "}";
+
+        Search search = new Search.Builder(query)
+                .addIndex("installations")
+                .addType("installation")
+                .build();
+
+        try {
+            SearchResult result = jestClient.execute(search);
+            return result.getSourceAsObjectList(Installation.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return null;
     }
