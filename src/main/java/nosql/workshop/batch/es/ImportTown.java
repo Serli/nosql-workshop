@@ -1,9 +1,11 @@
 package nosql.workshop.batch.es;
 
+import io.searchbox.annotations.JestId;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Bulk;
 import io.searchbox.core.BulkResult;
 import io.searchbox.core.Index;
+import io.searchbox.indices.CreateIndex;
 import io.searchbox.indices.IndicesExists;
 import nosql.workshop.connection.ESConnectionUtil;
 
@@ -33,40 +35,42 @@ public class ImportTown {
         JestClient jestClient = ESConnectionUtil.createClient("");
         try {
             boolean exists = jestClient.execute(new IndicesExists.Builder(ES_INDEX).build()).isSucceeded();
-            if (exists) {
-                // do smt
-                InputStream is = getClass().getResourceAsStream("/batch/csv/towns_paysdeloire.csv");
-                BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                Bulk.Builder bulkIndexBuilder = new Bulk.Builder();
-
-                br.lines()
-                        .skip(1)
-                        .filter(line -> line.length() > 0)
-                        .map(line -> line.split(","))
-                        .forEach(column -> {
-
-                            String id = cleanString(column[0]);
-                            String name = cleanString(column[1]);
-                            String nameSuggest = cleanString(column[2]);
-                            List<Double> location = Arrays.asList(Double.valueOf(cleanString(column[6])), Double.valueOf(cleanString(column[7])));
-
-                            Town town = new Town(name, nameSuggest, location);
-
-                            bulkIndexBuilder.addAction(new Index.Builder(town).index(ES_INDEX).type("towns").id(id).build());
-                        });
-
-                try {
-                    BulkResult bulkResult = jestClient.execute(bulkIndexBuilder.build());
-                    for (BulkResult.BulkResultItem bulkResultItem : bulkResult.getFailedItems()) {
-                        LOGGER.severe("Error when processing the bulk: "+ bulkResultItem.error);
-
-                    }
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            if (!exists) {
+                jestClient.execute(new CreateIndex.Builder(ES_INDEX).build());
             }
+
+            InputStream is = getClass().getResourceAsStream("/batch/csv/towns_paysdeloire.csv");
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            Bulk.Builder bulkIndexBuilder = new Bulk.Builder();
+
+            br.lines()
+                    .skip(1)
+                    .filter(line -> line.length() > 0)
+                    .map(line -> line.split(","))
+                    .forEach(column -> {
+
+                        String id = cleanString(column[0]);
+                        String name = cleanString(column[1]);
+                        String nameSuggest = cleanString(column[2]);
+                        List<Double> location = Arrays.asList(Double.valueOf(cleanString(column[6])), Double.valueOf(cleanString(column[7])));
+
+                        Town town = new Town(id, name, nameSuggest, location);
+
+                        bulkIndexBuilder.addAction(new Index.Builder(town).index(ES_INDEX).type("towns").build());
+                    });
+
+            try {
+                BulkResult bulkResult = jestClient.execute(bulkIndexBuilder.build());
+                for (BulkResult.BulkResultItem bulkResultItem : bulkResult.getItems()) {
+                    System.out.println(bulkResultItem.error + " " + bulkResultItem.status);
+                }
+                for (BulkResult.BulkResultItem bulkResultItem : bulkResult.getFailedItems()) {
+                    LOGGER.severe("Error when processing the bulk: "+ bulkResultItem.error);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -78,12 +82,14 @@ public class ImportTown {
     }
 
     private class Town {
+        @JestId
+        private final String id;
         private final String name;
         private final String nameSuggest;
         private final List<Double> location;
 
-        public Town(String name, String nameSuggest, List<Double> location) {
-
+        public Town(String id, String name, String nameSuggest, List<Double> location) {
+            this.id = id;
             this.name = name;
             this.nameSuggest = nameSuggest;
             this.location = location;
