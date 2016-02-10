@@ -2,25 +2,17 @@ package nosql.workshop.services;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.mongodb.DBObject;
 
-import net.codestory.http.Context;
-import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 
-import org.jongo.Aggregate;
-import org.jongo.Aggregate.ResultsIterator;
-import org.jongo.FindOne;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import static nosql.workshop.model.Installation.*;
 
 /**
  * Service permettant de manipuler les installations sportives.

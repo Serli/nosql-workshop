@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,6 +30,7 @@ import nosql.workshop.model.Equipement;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.Installation.Adresse;
 import nosql.workshop.model.Installation.Location;
+import nosql.workshop.model.suggest.TownSuggest;
 
 import org.bson.Document;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -166,11 +168,35 @@ public class CsvToMongoToElastic {
 		this.collection.insert(installation);
 	}
 	
+	private void importTowns() {
+		String splitPattern = ",";
+		try (InputStream inputStream = CsvToMongoToElastic.class.getResourceAsStream("/batch/csv/towns_paysdeloire.csv");
+				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+			reader.lines()
+			.skip(1)
+			.filter(line -> line.length() > 0)
+			.map(line -> line.substring(1, line.length() - 1))
+			.map(line -> line.split(splitPattern))
+			.forEach(columns -> {
+				TownSuggest ts = new TownSuggest(columns[1].replace("\"", ""), Arrays.asList(new Double[] {Double.parseDouble(columns[6]), Double.parseDouble(columns[7])}));
+				Index index = new Index.Builder(ts).index("towns").type("town").build();
+				try {
+					this.elasticClient.execute(index);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+		System.out.println("Done importing towns");
+	}
+	
 	private void dropElastic() {
 		try {
 			this.elasticClient.execute(new Delete.Builder("1")
+			.index("towns")
 			.index("installations")
-			.type("installation")
 			.build());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -185,8 +211,9 @@ public class CsvToMongoToElastic {
 		//obj.collection.createIndex(new BasicDBObject("$**", "text"));
 		//obj.saveToMongo();
 		//obj.collection.createIndex(new BasicDBObject("location", "2dsphere"));
-		obj.dropElastic();
-		obj.saveToElastic();
+		//obj.dropElastic();
+		//obj.saveToElastic();
+		obj.importTowns();
 	}
 
 }
