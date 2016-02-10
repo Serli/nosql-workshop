@@ -3,7 +3,6 @@ package nosql.workshop.batch.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 
 import java.io.BufferedReader;
@@ -77,10 +76,10 @@ public class BatchJob {
                         .collect(Collectors.toList())
                         .forEach(r -> {
                             Document doc = new Document("numero", r.get(4))
-                                    .append("nom", r.get(5))
+                                    .append("nom", r.get(5).replace("\"", ""))
                                     .append("type", r.get(7))
                                     .append("famille", r.get(9));
-                            UpdateResult ur = collection.updateOne(
+                            collection.updateOne(
                                     new Document().append("_id", r.get(2)),
                                     new Document().append("$addToSet",
                                             new Document().append("equipements", doc))
@@ -99,13 +98,10 @@ public class BatchJob {
                         .map(line -> Arrays.asList(line.split(SEPARATOR)))
                         .map(line -> line.stream().map(i -> i.replaceAll("\"", "")).collect(Collectors.toList()))
                         .collect(Collectors.toList())
-                        .forEach(r -> {
-                            UpdateResult ur =  collection.updateOne(
+                        .forEach(r -> collection.updateOne(
                                     new Document().append("equipements", new Document("$elemMatch", new Document("numero", r.get(2).trim()))),
-                                    new Document().append("$addToSet", new Document().append("equipements.$.activites", r.get(5).trim())));
-
-                            System.out.println("mc="+ur.getMatchedCount()+", mod="+ur.getModifiedCount());
-                        });
+                                    new Document().append("$push", new Document().append("equipements.$.activites", r.get(5).trim())))
+                        );
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
