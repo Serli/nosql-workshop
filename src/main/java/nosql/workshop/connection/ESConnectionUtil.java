@@ -19,6 +19,7 @@ public abstract class ESConnectionUtil {
         factory.setHttpClientConfig(new HttpClientConfig
                 .Builder(serverUri)
                 .multiThreaded(true)
+                .readTimeout(999999999)
                 .build());
         return factory.getObject();
     }

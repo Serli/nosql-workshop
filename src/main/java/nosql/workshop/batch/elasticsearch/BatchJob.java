@@ -19,11 +19,10 @@ import java.util.stream.Collectors;
 public class BatchJob {
 
     public static void main(String[] args) {
-
         Path path = Paths.get("src/main/resources/batch/csv", "towns_paysdeloire.csv");
-
+        JestClient client = ESConnectionUtil.createClient("");
         try {
-            JestClient client = ESConnectionUtil.createClient("");
+
             Reader source = Files.newBufferedReader(path, Charset.forName("UTF-8"));
             try (BufferedReader reader = new BufferedReader(source)) {
                 Bulk.Builder bulkBuilder = new Bulk.Builder();
@@ -41,6 +40,8 @@ public class BatchJob {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            client.shutdownClient();
         }
 
     }
