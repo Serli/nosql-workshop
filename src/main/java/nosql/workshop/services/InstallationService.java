@@ -39,14 +39,14 @@ public class InstallationService {
     }
 
     public Installation getById(String Id) {
-        return installations.findOne("{_id : '"+Id+"'}").as(Installation.class);
+        return installations.findOne("{_id : '" + Id + "'}").as(Installation.class);
     }
 
     public List<Installation> getAll() {
         return Lists.newArrayList(installations.find().as(Installation.class).iterator());
     }
 
-    public InstallationsStats getStats(){
+    public InstallationsStats getStats() {
         InstallationsStats stats = new InstallationsStats();
         stats.setTotalCount(installations.count(""));
         stats.setCountByActivity(Lists.newArrayList(installations.aggregate("{$unwind: \"$equipements\"}")
@@ -54,19 +54,27 @@ public class InstallationService {
                 .and("{$group: {_id: \"$equipements.activites\", total:{$sum : 1}}}")
                 .and("{$project: {activite: \"$_id\", total : 1}}")
                 .as(CountByActivity.class).iterator()));
-        stats.setAverageEquipmentsPerInstallation(installations.aggregate("{$unwind: \"$equipements\"}")
-                .and("{$group: {_id: \"$nom\", sum:{$sum : 1}}}")
-                .and("{$group: {_id: 0, average:{$avg : \"$sum\"}}}")
+        stats.setAverageEquipmentsPerInstallation(installations.aggregate("{$group: {_id: null, average : { $avg : { $size : \"$equipements\"}}}}")
                 .as(Average.class).next().getAverage());
-       // stats.setAverageEquipmentsPerInstallation(installations.aggregate(" [{$unwind : \"$equipements\"},{ $group : { _id : \"$_id\", len : { $sum : 1 } } },{ $sort : { len : -1 } },{ $limit :1 } ]")
-       //         .as(Installation));
+        IdForMaxEquipements idMax = installations.aggregate("{$unwind: \"$equipements\"}")
+                .and("{$group: {_id: \"$_id\", total:{$sum : 1}}}")
+                .and("{$sort: {total : -1}}")
+                .and("{$limit: 1}")
+                .and("{$project : {id: \"$_id\", _id: 0}}")
+                .as(IdForMaxEquipements.class)
+                .next();
+        stats.setInstallationWithMaxEquipments(getById(idMax.id));
         return stats;
     }
 
-    public  List<Installation> geoSearch(Double latitude, Double longitude, Integer dist) {
-        installations.ensureIndex("{ location : '2dsphere' } " );
-        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ "+latitude+", "+longitude+" ]}, $maxDistance : "+dist+"}}}").as(Installation.class).iterator());
+    public List<Installation> geoSearch(Double latitude, Double longitude, Integer dist) {
+        installations.ensureIndex("{ location : '2dsphere' } ");
+        return Lists.newArrayList(installations.find("{location : { $near : { $geometry : { type : \"Point\", coordinates : [ " + latitude + ", " + longitude + " ]}, $maxDistance : " + dist + "}}}").as(Installation.class).iterator());
 
     }
 
+
+    public static class IdForMaxEquipements {
+        public String id;
+    }
 }
