@@ -7,11 +7,17 @@ import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import io.searchbox.core.Suggest;
+import io.searchbox.core.SuggestResult;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.suggest.TownSuggest;
 import nosql.workshop.utils.JestConnection;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.json.JSONArray;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,6 +38,7 @@ public class SearchService {
 
     /**
      * Gets the list of the installations matching a given string.
+     *
      * @param search string to search
      * @return list of installations
      */
@@ -54,6 +61,7 @@ public class SearchService {
 
     /**
      * Gets the location of a town.
+     *
      * @param town town to get the location
      * @return location of the town
      */
@@ -78,24 +86,35 @@ public class SearchService {
 
     /**
      * Gets the town names beginning with a given string.
+     *
      * @param string string the towns have to begin with
      * @return the town names list
      */
     public List<TownSuggest> autocompleteTown(String string) {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.prefixQuery("townname", string.toLowerCase()));
-        Search research = new Search.Builder(searchSourceBuilder.toString())
-                .addIndex("towns")
-                .addType("town")
-                .build();
         try {
-            SearchResult result = elasticClient.execute(research);
-            System.out.println(result.getJsonObject().toString());
-            JsonArray hits = result.getJsonObject().get("hits").getAsJsonObject().get("hits").getAsJsonArray();
+            // Build the request
+            XContentBuilder sourceBuilder = XContentFactory.jsonBuilder()
+                    .startObject()
+                        .startObject("town-suggestion")
+                            .field("text", string)
+                            .startObject("completion")
+                                .field("field", "suggest")
+                            .endObject()
+                        .endObject()
+                    .endObject();
+            Suggest towns = new Suggest.Builder(sourceBuilder.string(), "town-suggestion").addIndex("towns").build();
+            // Execute the request
+            SuggestResult result = elasticClient.execute(towns);
+            // Get results
+            JsonArray hits = result.getJsonObject()
+                    .get("town-suggestion").getAsJsonArray()
+                    .get(0).getAsJsonObject()
+                    .get("options").getAsJsonArray();
             List<TownSuggest> townSuggests = new ArrayList<>();
             List<Double> location = new ArrayList<>();
             hits.forEach(hit -> {
-                JsonObject content = hit.getAsJsonObject().get("_source").getAsJsonObject();
+                // For each result, build a TownSuggest
+                JsonObject content = hit.getAsJsonObject().get("payload").getAsJsonObject();
                 String name = content.get("townname").getAsString();
                 location.add(content.get("x").getAsDouble());
                 location.add(content.get("y").getAsDouble());
@@ -106,6 +125,7 @@ public class SearchService {
         } catch (IOException e) {
             return null;
         }
+
     }
 
 }

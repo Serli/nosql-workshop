@@ -63,9 +63,11 @@ curl -X PUT 'http://localhost:9200/towns' -d '{
     "mappings": {
         "town": {
             "properties": {
-                "townname_suggest": {
-                    "type": "completion",
-                    "payloads": true
+                "suggest": {
+                    "type" : "completion",
+                    "analyzer" : "simple",
+                    "search_analyzer" : "simple",
+                    "payloads" : true
                 }
             }
         }
