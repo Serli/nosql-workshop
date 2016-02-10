@@ -18,6 +18,7 @@ public abstract class ESConnectionUtil {
         JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(new HttpClientConfig
                 .Builder(serverUri)
+                .readTimeout(9999999)
                 .multiThreaded(true)
                 .build());
         return factory.getObject();
