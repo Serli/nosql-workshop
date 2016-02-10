@@ -6,6 +6,7 @@ import net.codestory.http.annotations.Get;
 import nosql.workshop.model.Installation;
 import nosql.workshop.model.stats.InstallationsStats;
 import nosql.workshop.services.InstallationService;
+import nosql.workshop.services.SearchService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,10 +18,12 @@ import java.util.List;
 public class InstallationResource {
 
     private final InstallationService installationService;
+    private final SearchService searchService;
 
     @Inject
-    public InstallationResource(InstallationService installationService) {
+    public InstallationResource(InstallationService installationService, SearchService searchService) {
         this.installationService = installationService;
+        this.searchService = searchService;
     }
 
 
@@ -46,7 +49,7 @@ public class InstallationResource {
         String query = context.query().get("query");
         List<Installation> installations = new ArrayList<Installation>();
         try {
-            installations = installationService.search(query);
+            installations = searchService.search(query);
         } catch (IOException e) {
             e.getStackTrace();
         }

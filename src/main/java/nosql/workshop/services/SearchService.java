@@ -1,5 +1,6 @@
 package nosql.workshop.services;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.searchbox.client.JestClient;
@@ -110,5 +111,46 @@ public class SearchService {
         else {
             return null;
         }
+    }
+
+
+    public List<Installation> search(String query) throws IOException {
+        List<Installation> installations = new ArrayList<Installation>();
+
+        JestClient client = ESConnectionUtil.createClient("");
+
+
+        String querySearch2 = "{\"query\": {\n"
+                + "     \"match\": {\n"
+                + "         \"nom\": \"" + query + "\"\n"
+                + "     }\n"
+                + "}}";
+
+
+        String querySearch = "{"
+                + " \"query\": {\n"
+                + "     \"multi_match\": {\n"
+                + "         \"query\": \"" + query + "\",\n"
+                + "         \"fields\": [\n"
+                + "             \"_all\"\n"
+                + "         ]\n"
+                + "     }\n"
+                + " }\n"
+                + "}";
+
+        Search.Builder searchBuilder = new Search.Builder(querySearch).addIndex("installations").addType("installation");
+        System.out.println(querySearch);
+
+        SearchResult result = client.execute(searchBuilder.build());
+
+        List<SearchResult.Hit<Installation, Void>> hits = result.getHits(Installation.class);
+        Stream<Installation> installationStream = hits.stream().map(installation -> installation.source);
+        return Lists.newArrayList(installationStream.iterator());
+        /** if (!hits.isEmpty()) {
+         for (SearchResult.Hit<Installation, Void> hit : hits) {
+         installations.add(hit.source);
+         }
+         }
+         return installations;**/
     }
 }

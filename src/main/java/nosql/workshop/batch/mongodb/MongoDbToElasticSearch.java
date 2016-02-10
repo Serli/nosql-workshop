@@ -9,7 +9,9 @@ import io.searchbox.indices.IndicesExists;
 import nosql.workshop.connection.ESConnectionUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,19 +27,19 @@ public class MongoDbToElasticSearch {
 
         try {
             // Si la collection existe déjà, on la supprime
-            boolean indexExists = client.execute(new IndicesExists.Builder(COL_INSTALLATIONS).build()).isSucceeded();
+            /**boolean indexExists = client.execute(new IndicesExists.Builder(COL_INSTALLATIONS).build()).isSucceeded();
             if (indexExists) {
                 client.execute(new DeleteIndex.Builder(COL_INSTALLATIONS).build());
-            }
+            }**/
 
             // Récupération des données en base MongoDb
-            Map<String, DBObject> source = listInstallations();
+            List<Index> source = listInstallations();
 
             // Envoi sur la base ElasticSearch
             Bulk bulk = new Bulk.Builder()
                     .defaultIndex(COL_INSTALLATIONS)
                     .defaultType("installation")
-                    .addAction(new Index.Builder(source).build())
+                    .addAction(source)
                     .build();
 
             client.execute(bulk);
@@ -47,19 +49,19 @@ public class MongoDbToElasticSearch {
     }
 
 
-    private static Map<String, DBObject> listInstallations() {
+    private static List<Index> listInstallations() {
         DBCollection collection = getDbCollection();
 
         DBCursor cursor = collection.find();
         cursor.addOption(Bytes.QUERYOPTION_NOTIMEOUT);
 
-        Map<String, DBObject> source = new HashMap<String, DBObject>();
+        List<Index> source = new ArrayList<>();
 
         // On récupère les 500 premiers objets
         int i = 500;
         while (cursor.hasNext() && i > 0) {
             DBObject dbObject = cursor.next();
-            source.put(dbObject.get("_id").toString(), dbObject);
+            source.add(createIndex(dbObject));
             i--;
         }
         cursor.close();
@@ -77,4 +79,11 @@ public class MongoDbToElasticSearch {
         return db.getCollection(COL_INSTALLATIONS);
     }
 
+    private static Index createIndex(DBObject object){
+        String id = object.get("_id").toString();
+        object.removeField("_id");
+        object.put("id", id);
+        object.removeField("dateMiseAJourFiche");
+        return new Index.Builder(object).id(id).build();
+    }
 }
