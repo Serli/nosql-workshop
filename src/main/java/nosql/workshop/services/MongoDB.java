@@ -20,7 +20,7 @@ public class MongoDB {
      */
     public Jongo getJongo() throws UnknownHostException {
         String givenUri = System.getenv("MONGOLAB_URI");
-        String uri = givenUri == null ? "mongodb://localhost:27017/nosql-workshop" : givenUri;
+        String uri = givenUri == null ? "mongodb://localhost:27017/sportDB" : givenUri;
         MongoClientURI mongoClientURI = new MongoClientURI(uri);
         MongoClient mongoClient = new MongoClient(mongoClientURI);
         DB db = mongoClient.getDB(mongoClientURI.getDatabase());

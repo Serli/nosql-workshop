@@ -10,7 +10,7 @@ public class TownSuggest {
     private String townName;
     private Double[] location;
 
-    private TownSuggest() {
+    public TownSuggest() {
     }
 
     public TownSuggest(String value, List<Double> location) {
