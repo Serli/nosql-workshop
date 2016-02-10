@@ -25,7 +25,7 @@ public class MongoDbToElasticSearch {
         MongoCollection installations = mongoDB.getJongo().getCollection("installations");
 
         // Get the jest client
-        JestClient client = ESConnectionUtil.client;
+        JestClient client = ESConnectionUtil.getJestClient();
 
         // Get all installations and index them in ES using Jest
         MongoCursor<Installation> all = installations.find().as(Installation.class);

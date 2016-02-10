@@ -22,7 +22,7 @@ public class ImportTowns {
     public static void main(String[] args) {
 
         // Get the jest client
-        JestClient client = ESConnectionUtil.client;
+        JestClient client = ESConnectionUtil.getJestClient();
 
         String csvFile = "src/main/resources/batch/csv/towns_paysdeloire.csv";
         BufferedReader br = null;

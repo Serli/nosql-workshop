@@ -7,14 +7,18 @@ import io.searchbox.client.config.HttpClientConfig;
 /**
  * Utilitaire permettant de gérer la connexion à MongoDB
  */
-public abstract class ESConnectionUtil {
+public class ESConnectionUtil {
 
-    public static final JestClient client = createClient();
+
+    private static ESConnectionUtil connectionUtil = new ESConnectionUtil();
+
+    private JestClient client;
 
     private ESConnectionUtil() {
+        this.client = createClient();
     }
 
-    private static JestClient createClient() {
+    private JestClient createClient() {
         String serverUri = "http://localhost:9200";
 
         JestClientFactory factory = new JestClientFactory();
@@ -23,5 +27,9 @@ public abstract class ESConnectionUtil {
                 .multiThreaded(true)
                 .build());
         return factory.getObject();
+    }
+
+    public static JestClient getJestClient(){
+        return ESConnectionUtil.connectionUtil.client;
     }
 }
